@@ -92,7 +92,7 @@ function Title() {
             </Box>
           </Grid>
         </Box>
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12, md: 7 }}>
           <Box
             sx={{
               display: "flex",
@@ -108,7 +108,7 @@ function Title() {
             </Card>
           </Box>
         </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12, md: 7 }}>
           <Box
             sx={{
               display: "flex",
@@ -148,7 +148,7 @@ function Title() {
                 </Card>
               </Box>
             </Grid>
-            <Grid size={{ xs: 12, md: 3 }}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Box
                 sx={{
                   display: "flex",
