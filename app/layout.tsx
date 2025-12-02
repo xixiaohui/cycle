@@ -4,10 +4,9 @@ import InitColorSchemeScript from "@mui/material/InitColorSchemeScript";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import "./globals.css";
 import theme from "./theme";
-import { ThemeProvider} from "@mui/material/styles";
+import { ThemeProvider } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
 import { GlobalStyles } from "@mui/material";
-
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,9 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable}`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <InitColorSchemeScript attribute="class" />
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <ThemeProvider theme={theme}>
@@ -41,9 +38,9 @@ export default function RootLayout({
             <GlobalStyles
               styles={{
                 body: {
-                  minHeight: '100vh',
-                  backgroundColor: 'var(--mui-palette-background-default)',
-                }
+                  minHeight: "100vh",
+                  backgroundColor: "var(--mui-palette-background-default)",
+                },
               }}
             />
             {children}

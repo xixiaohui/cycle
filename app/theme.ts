@@ -1,6 +1,8 @@
 "use client";
 import { extendTheme } from "@mui/material/styles";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Oswald } from "next/font/google";
+
+import { Noto_Sans_TC, Noto_Serif_TC } from "next/font/google";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -10,6 +12,25 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const oswald = Oswald({
+  variable: "--font-oswald",
+  subsets: ["latin"],
+});
+
+const notoSans = Noto_Sans_TC({
+  weight: ["400", "700"], // 正文字重 & 标题等
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-sans-cjk",
+});
+
+const notoSerif = Noto_Serif_TC({
+  weight: ["400", "700"],
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-serif-cjk",
 });
 
 const theme = extendTheme({
@@ -25,11 +46,11 @@ const theme = extendTheme({
           main: "#64748b",
         },
         background: {
-          default: "#f8fafc",
-          paper: "#ffffff",
+          default: "#1c1f33",
+          paper: "#64748b",
         },
         text: {
-          primary: "#0f172a",
+          primary: "#1c1f33",
           secondary: "#475569",
         },
       },
@@ -40,21 +61,32 @@ const theme = extendTheme({
           main: "#60a5fa",
         },
         background: {
-          default: "#0f172a",
+          default: "#1c1f33",
           paper: "#1e2937",
         },
         text: {
-          primary: "#f8fafc",
+          primary: "#f3ebd3",
           secondary: "#cbd5e1",
         },
       },
     },
   },
 
-
   typography: {
-    fontFamily: `${geistSans.style.fontFamily},${geistMono.style.fontFamily}`,
+    fontFamily: `${oswald.style.fontFamily},${notoSans.style.fontFamily},${notoSerif.style.fontFamily},${geistSans.style.fontFamily},${geistMono.style.fontFamily}`,
+
+    h1: {
+      fontFamily: `${oswald.style.fontFamily},${notoSans.style.fontFamily} , serif`,
+    },
+    body1: {
+      fontFamily: `${oswald.style.fontFamily},${notoSerif.style.fontFamily}, sans-serif`,
+    },
+
+    body2: {
+      fontFamily: `${oswald.style.fontFamily},${notoSerif.style.fontFamily}, sans-serif`,
+    },
   },
+
   components: {
     MuiAlert: {
       styleOverrides: {
