@@ -1,6 +1,9 @@
+"use client";
+import { Box, Container, Grid, Typography } from "@mui/material";
 import Image from "next/image";
 
-export default function Home() {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function HomeOld() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
@@ -61,5 +64,32 @@ export default function Home() {
         </div>
       </main>
     </div>
+  );
+}
+
+// 标题
+function Title() {
+  return (
+    <>
+      <p className="text-8xl text-blue-200 tracking-tighter text-balance">
+        CHAOHU CYCLING CLUB
+      </p>
+      {/* <Typography gutterBottom variant="h1">
+        CHAOHU CYCLING CLUB
+      </Typography> */}
+    </>
+  );
+}
+export default function Home() {
+  return (
+    <Container maxWidth="lg">
+      <Grid container spacing={12}>
+        <Grid size={{ xs: 12, md: 12 }}>
+          <Box>
+            <Title />
+          </Box>
+        </Grid>
+      </Grid>
+    </Container>
   );
 }
