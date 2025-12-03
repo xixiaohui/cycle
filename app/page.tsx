@@ -160,7 +160,7 @@ function Title() {
                 <Card sx={{ flex: 1 }}>
                   <CardMedia
                     component="img"
-                    src="chaohu2.svg"
+                    src="chaohu3.svg"
                     alt="chaohu"
                     sx={{
                       p: 3,
