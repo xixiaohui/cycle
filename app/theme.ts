@@ -73,18 +73,26 @@ const theme = extendTheme({
   },
 
   typography: {
-    // fontFamily: `${oswald.style.fontFamily},${notoSans.style.fontFamily},${notoSerif.style.fontFamily},${geistSans.style.fontFamily},${geistMono.style.fontFamily}`,
+    fontFamily: `${geistSans.style.fontFamily},${geistMono.style.fontFamily}`,
 
     h1: {
       fontFamily: `${oswald.style.fontFamily}`,
     },
 
+    h2:{
+      fontFamily: `${oswald.style.fontFamily}`,
+    },
+
+    h3:{
+      fontFamily: `${oswald.style.fontFamily}`,
+    },
+
     body1: {
-      fontFamily: `${notoSerif.style.fontFamily}`,
+      fontFamily: `${oswald.style.fontFamily},${notoSerif.style.fontFamily},${geistSans.style.fontFamily},${geistMono.style.fontFamily}`,
     },
 
     body2: {
-      fontFamily: `${notoSerif.style.fontFamily}`,
+      fontFamily: `${oswald.style.fontFamily},${notoSerif.style.fontFamily},${geistSans.style.fontFamily},${geistMono.style.fontFamily}`,
     },
   },
 

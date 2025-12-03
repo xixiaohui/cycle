@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CHAOHU CYCLING CLUB",
-  description: "CHAOHU CYCLING CLUB",
+  title: "Chaohucycling Club",
+  description: "Chaohucycling Club以骑行之名，与巢湖（漅湖）相伴\n沿着湖走，遇见风，遇见自己\n因为热爱，所以同行",
 };
 
 export default function RootLayout({

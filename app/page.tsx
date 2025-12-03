@@ -5,7 +5,6 @@ import {
   Card,
   CardActions,
   CardContent,
-  CardHeader,
   CardMedia,
   Container,
   Grid,
@@ -28,7 +27,6 @@ function Title() {
           display: "flex",
           flexDirection: { xs: "column", md: "row" },
           my: { xs: 1, md: 2 },
-          // border:"1px solid red",
           width: "100%",
         }}
       >
@@ -38,7 +36,6 @@ function Title() {
               display: "flex",
               flexDirection: "column",
               justifyContent: "flex-end",
-              // border: "1px solid red",
             }}
           >
             <Typography variant={isSmall ? "h2" : "h1"}>
@@ -55,7 +52,6 @@ function Title() {
             display: "flex",
             flexDirection: "column",
             justifyContent: "flex-end",
-            // border: "1px solid red",
           }}
         >
           <Box
@@ -75,13 +71,13 @@ function Title() {
   );
 }
 
-// 标题
+// 内容 在移动端隐藏
 function Content() {
   return (
     <>
       <Box
         sx={{
-          display: "flex",
+          display: { xs: "none", md: "flex" },
           flexDirection: "column",
           gap: 1,
         }}
@@ -176,36 +172,51 @@ function Content() {
                   // border: "1px solid red",
                 }}
               >
-                <Box
-                  sx={{
-                    height: "100%",
-                  }}
-                >
-                  <Link href="/next">
-                    <Card variant="outlined">
-                      <CardMedia
-                        component="img"
-                        alt="骑行预报"
-                        height="140"
-                        image="https://picsum.photos/id/203/800/450"
-                      />
-                      <CardContent >
-                        <Typography gutterBottom variant="h6" component="div">
-                          骑行预报
-                        </Typography>
-                        <Typography gutterBottom variant="body1" component="div">
-                          2025年12月7日8:30
-                        </Typography>
-                          <Typography variant="body2">环巢湖 百戏城 </Typography>
-                      </CardContent>
-
-                    </Card>
-                  </Link>
-                </Box>
+                <CycleCard></CycleCard>
               </Box>
             </Grid>
           </Grid>
         </Box>
+      </Box>
+      <Box sx={{ display: { xs: "flex", md: "none" } }}>
+        <Grid size={12}>
+          <CycleCard></CycleCard>
+        </Grid>
+      </Box>
+    </>
+  );
+}
+
+function CycleCard() {
+  return (
+    <>
+      <Box
+        sx={{
+          height: "100%",
+        }}
+      >
+        <Link href="/next">
+          <Card variant="outlined">
+            <CardMedia
+              component="img"
+              alt="骑行预报"
+              height="140"
+              image="https://picsum.photos/id/203/800/450"
+            />
+            <CardContent>
+              <Typography gutterBottom variant="h6" component="div">
+                骑行预报
+              </Typography>
+              <Typography gutterBottom variant="body1" component="div">
+                2025年12月7日8:30
+              </Typography>
+              <Typography variant="body2">环巢湖 百戏城 </Typography>
+            </CardContent>
+            <CardActions sx={{ display:{xs:'flex',md:'none'}}}>
+              <Button>查看</Button>
+            </CardActions>
+          </Card>
+        </Link>
       </Box>
     </>
   );
