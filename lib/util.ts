@@ -22,3 +22,61 @@ export const CYCLE_TEXT: string[] = [
   岛屿:	姥山岛、孤山岛\n
   定居点:	合肥市、长临河镇、严店乡、三河镇、盛桥镇、同大镇、白山镇、巢湖市、中庙街道、黄麓镇、烔炀镇、中垾镇、散兵镇、槐林镇`,
 ];
+
+export const formatDateSmart = (dateString: string) => {
+  if (!dateString) return "";
+
+  // 判断是否为 ISO 格式
+  const isISO =
+    dateString.includes("T") || /^\d{4}-\d{2}-\d{2}/.test(dateString);
+
+  if (!isISO) return dateString;
+
+  const date = new Date(dateString);
+
+  // 强制转为上海时间
+  const formatter = new Intl.DateTimeFormat("zh-CN", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(date);
+
+  const y = parts.find((p) => p.type === "year")?.value;
+  const m = parts.find((p) => p.type === "month")?.value;
+  const d = parts.find((p) => p.type === "day")?.value;
+  const h = parts.find((p) => p.type === "hour")?.value;
+  const mm = parts.find((p) => p.type === "minute")?.value;
+
+  return `${y}年${m}月${d}日 ${h}:${mm}`;
+};
+
+export const formatKeepUTC = (str: string) => {
+  return str.replace("+00", "");
+};
+
+export type RidingPlan = {
+  id: string;
+  title: string;
+  description?: string | null;
+
+  start_time: string;  // Supabase timestamptz -> string
+  end_time?: string | null;
+
+  location?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+
+  distance_km?: number | null;
+  difficulty?: "简单" | "普通" | "困难" | string;
+
+  cover_url?: string | null;
+
+  created_at: string;
+  user_id: string;
+};

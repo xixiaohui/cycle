@@ -1,36 +1,23 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
 
-First, run the development server:
+create table riding_plans (
+  id uuid primary key default uuid_generate_v4(),
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+  title text not null,                     -- 标题：如「巢湖环湖 120km」
+  description text,                        -- 内容描述
+  start_time timestamptz not null,         -- 开始时间
+  end_time timestamptz,                    -- 结束时间（可选）
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+  location text,                           -- 地点描述，如「巢湖市滨湖绿道入口」
+  latitude double precision,               -- GPS 纬度（可选）
+  longitude double precision,              -- GPS 经度（可选）
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+  distance_km numeric(6,2),                -- 预计公里数，如 80.50
+  difficulty text default '普通',        -- 难度：简单 / 普通 / 困难
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+  cover_url text,                          -- 封面图 URL（可选）
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+  created_at timestamptz default now(),
+  user_id uuid references auth.users(id)   -- 创建者
+);

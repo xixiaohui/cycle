@@ -1,19 +1,17 @@
 "use client";
 import {
   Box,
-  Button,
   Card,
-  CardActions,
   CardContent,
   CardMedia,
   Container,
   Grid,
-  Link,
   Typography,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import { CYCLE_TEXT } from "./lib/util";
+import { CYCLE_TEXT} from "../lib/util";
+import CycleCard from "@/components/CycleCard";
 
 //content
 function Title() {
@@ -172,7 +170,8 @@ function Content() {
                   // border: "1px solid red",
                 }}
               >
-                <CycleCard></CycleCard>
+                <Typography variant="h6">最新</Typography>
+                <CycleCard single={true}></CycleCard>
               </Box>
             </Grid>
           </Grid>
@@ -180,47 +179,14 @@ function Content() {
       </Box>
       <Box sx={{ display: { xs: "flex", md: "none" } }}>
         <Grid size={12}>
-          <CycleCard></CycleCard>
+          <CycleCard single={true}></CycleCard>
         </Grid>
       </Box>
     </>
   );
 }
 
-function CycleCard() {
-  return (
-    <>
-      <Box
-        sx={{
-          height: "100%",
-        }}
-      >
-        <Link href="/next">
-          <Card variant="outlined">
-            <CardMedia
-              component="img"
-              alt="骑行预报"
-              height="140"
-              image="https://picsum.photos/id/203/800/450"
-            />
-            <CardContent>
-              <Typography gutterBottom variant="h6" component="div">
-                骑行预报
-              </Typography>
-              <Typography gutterBottom variant="body1" component="div">
-                2025年12月7日8:30
-              </Typography>
-              <Typography variant="body2">环巢湖 百戏城 </Typography>
-            </CardContent>
-            <CardActions sx={{ display:{xs:'flex',md:'none'}}}>
-              <Button>查看</Button>
-            </CardActions>
-          </Card>
-        </Link>
-      </Box>
-    </>
-  );
-}
+
 
 export default function Home() {
   return (
