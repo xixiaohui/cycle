@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+
 export const CYCLE_TEXT: string[] = [
   `以骑行之名，与巢湖（漅湖）相伴\n沿着湖走，遇见风，遇见自己\n因为热爱，所以同行`,
 
@@ -56,8 +58,11 @@ export const formatDateSmart = (dateString: string) => {
   return `${y}年${m}月${d}日 ${h}:${mm}`;
 };
 
-export const formatKeepUTC = (str: string) => {
-  return str.replace("+00", "");
+export const formatDayjs = (str: string) => {
+  // const isoString = "2025-12-05T05:46:50.776423+00:00";
+  const formatted = dayjs(str).format("YYYY-MM-DD HH:mm");
+  console.log(formatted);
+  return formatted;
 };
 
 export type RidingPlan = {

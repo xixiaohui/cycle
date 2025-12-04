@@ -160,7 +160,7 @@ function Content() {
                 </Card>
               </Box>
             </Grid>
-            <Grid size={{ xs: 12, md: 2 }} offset={{ xs: 0, md: 3 }}>
+            <Grid size={{ xs: 12, md: 3 }} offset={{ xs: 0, md: 2 }}>
               <Box
                 sx={{
                   display: "flex",
@@ -170,7 +170,6 @@ function Content() {
                   // border: "1px solid red",
                 }}
               >
-                <Typography variant="h6">最新</Typography>
                 <CycleCard single={true}></CycleCard>
               </Box>
             </Grid>

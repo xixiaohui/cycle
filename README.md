@@ -21,3 +21,6 @@ create table riding_plans (
   created_at timestamptz default now(),
   user_id uuid references auth.users(id)   -- 创建者
 );
+
+
+
