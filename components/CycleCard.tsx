@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import {
   Box,
+  Button,
   Card,
+  CardActions,
   CardContent,
   Chip,
   CircularProgress,
@@ -14,6 +16,7 @@ import {
 import { RidingPlanPro } from "@/types/ridingPlan";
 import Image from "next/image";
 import { formatDayjs } from "@/lib/util";
+import { ArrowCircleRightOutlined } from "@mui/icons-material";
 
 type CycleCardProps = {
   single?: boolean;
@@ -62,11 +65,12 @@ export default function CycleCard({
   return (
     <>
       {plans.map((data) => (
-        <Link href={href} key={data.id}>
           <Card
+            key={data.id}
             className="
                     rounded-2xl shadow-xl border border-neutral-200 dark:border-neutral-800
                     bg-white dark:bg-neutral-900 overflow-hidden transition-all duration-300
+                    w-full
                   "
           >
             {/* Banner */}
@@ -75,7 +79,8 @@ export default function CycleCard({
                 src={data.map_image_url}
                 alt="route"
                 fill
-                sizes="800px"
+                sizes="(max-width: 768px) 100vw, 800px"
+                loading="eager"
                 className="object-cover brightness-95 dark:brightness-75"
               />
 
@@ -113,8 +118,18 @@ export default function CycleCard({
                 </Typography>
               </Box>
             </CardContent>
+            <CardActions>
+              <Button
+                fullWidth
+                variant="outlined"
+                size="small"
+                href={href}
+                startIcon={<ArrowCircleRightOutlined />}
+              >
+                查看详情
+              </Button>
+            </CardActions>
           </Card>
-        </Link>
       ))}
     </>
   );

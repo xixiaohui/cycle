@@ -10,9 +10,10 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import { CYCLE_TEXT} from "../lib/util";
+import { CYCLE_TEXT } from "../lib/util";
 import CycleCard from "@/components/CycleCard";
 import Footer from "@/components/Footer";
+
 
 //content
 function Title() {
@@ -38,7 +39,7 @@ function Title() {
             }}
           >
             <Typography variant={isSmall ? "h2" : "h1"}>
-              Chaohucycling Club
+              ChaohuCycling Club
             </Typography>
             {/* <p className="text-4xl color[#1c1f33] tracking-tighter text-balance">
                 Chaohucycling Club
@@ -161,14 +162,12 @@ function Content() {
                 </Card>
               </Box>
             </Grid>
-            <Grid size={{ xs: 12, md: 3 }} offset={{ xs: 0, md: 2 }}>
+            <Grid size={{ xs: 12, md: 3 }} offset={{ md: 2 }}>
               <Box
                 sx={{
                   display: "flex",
                   flexDirection: "column",
-                  justifyContent: "flex-end",
-                  height: "100%",
-                  // border: "1px solid red",
+                  justifyContent: "flex-start",
                 }}
               >
                 <CycleCard single={true}></CycleCard>
@@ -177,21 +176,18 @@ function Content() {
           </Grid>
         </Box>
       </Box>
-      <Box sx={{ display: { xs: "flex", md: "none" } }}>
-        <Grid size={12}>
-          <CycleCard single={true}></CycleCard>
-        </Grid>
-      </Box>
+
+      <div className="block w-full sm:hidden ">
+        <CycleCard single={true}></CycleCard>
+      </div>
     </>
   );
 }
 
-
-
 export default function Home() {
   return (
     <Container maxWidth="lg">
-      <Grid container spacing={1}>
+      <Grid container spacing={1} sx={{ mb: 1 }}>
         <Title></Title>
         <Content></Content>
       </Grid>

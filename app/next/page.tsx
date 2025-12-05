@@ -72,7 +72,7 @@ export default function NextPage() {
       <Grid
         container
         spacing={2}
-        // sx={{ border: "1px solid blue" }}
+        sx={{ mb:1 }}
       >
         <Grid
           size={12}

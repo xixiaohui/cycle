@@ -50,7 +50,7 @@ export default function CycleCardPro({ data }: CycleCardProps) {
         </Box>
       </Box>
 
-      <CardContent className="space-y-4 px-4 py-3 md:px-6 md:py-4">
+      <CardContent className="space-y-4">
         {/* 标题 */}
         <Box>
           <Typography variant="h6" className="font-bold">
@@ -187,7 +187,7 @@ export default function CycleCardPro({ data }: CycleCardProps) {
                 key={p.id}
                 src={p.avatar_url}
                 alt={p.name}
-                sx={{ width: 30, height: 30 }}
+                sx={{ width: 27, height: 27 }}
               />
             ))}
           </AvatarGroup>

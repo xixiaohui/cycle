@@ -1,10 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { RidingPlanPro, Comment } from "@/types/ridingPlan";
-import dayjs from "dayjs";
-
-// MUI
 import {
   Box,
   Typography,
@@ -13,31 +8,38 @@ import {
   Paper,
   IconButton,
   TextField,
+  AvatarGroup,
+  Avatar,
+  LinearProgress,
+  Divider,
+  Chip,
 } from "@mui/material";
-import FavoriteIcon from "@mui/icons-material/Favorite";
+
+import { Favorite, FavoriteBorder } from "@mui/icons-material";
 import CommentIcon from "@mui/icons-material/Comment";
+import { useEffect, useMemo, useState } from "react";
+import { RidingPlanPro, Comment } from "@/types/ridingPlan";
 
-
+import dayjs from "dayjs";
 import polyline from "polyline";
 
 // Supabase
 import { supabase } from "@/lib/supabaseClient";
+import StarIcon from "@mui/icons-material/Star";
+import StarBorderIcon from "@mui/icons-material/StarBorder";
+import CycleMap from "@/components/CycleMap";
 
 interface Props {
   plan: RidingPlanPro;
 }
 
-import dynamic from "next/dynamic";
-
-const CycleMap = dynamic(() => import("@/components/CycleMap"), {
-  ssr: false,
-});
-
 export default function CycleDetailPage({ plan }: Props) {
-  const [likes, setLikes] = useState(plan.likes);
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentInput, setCommentInput] = useState("");
   const [loadingComments, setLoadingComments] = useState(true);
+
+  const [likes, setLikes] = useState(plan.likes);
+  const [liked, setLiked] = useState(false);
 
   // 获取评论
   useEffect(() => {
@@ -59,9 +61,13 @@ export default function CycleDetailPage({ plan }: Props) {
     fetchComments();
   }, [plan.id]);
 
-  // 点赞
   const handleLike = async () => {
-    setLikes(likes + 1);
+    // if (liked) return;
+
+    // localStorage.setItem(likeKey, "true");
+    // setLiked(true);
+    // setLikes(likes + 1);
+
     await supabase
       .from("riding_plans")
       .update({ likes: likes + 1 })
@@ -85,100 +91,197 @@ export default function CycleDetailPage({ plan }: Props) {
       .insert({ plan_id: plan.id, content: newComment.content });
   };
 
-  // 解析路线
-  const routeLatLngs: [number, number][] = polyline
-    .decode(plan.route_polyline)
-    .map(([lat, lng]) => [lat, lng]);
-
+  const routeLatLngs = useMemo(() => {
+    return polyline
+      .decode(plan.route_polyline)
+      .map(([lat, lng]) => [lat, lng] as [number, number]);
+  }, [plan.route_polyline]);
 
   return (
-    <Box className="p-4 max-w-5xl mx-auto space-y-6">
-      {/* Header */}
-      <Box className="space-y-2">
-        <Button
-          variant="text"
-          color="primary"
-          onClick={() => window.history.back()}
-        >
-          ← 返回
-        </Button>
-        <Typography variant="h4" component="h1" className="font-bold">
-          {plan.title}
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          {plan.description}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          开始时间: {dayjs(plan.start_time).format("YYYY-MM-DD HH:mm")} | 距离: {plan.distance_km} km | 时长: {plan.duration_min} min | 爬升: {plan.elevation_m} m
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          天气: {plan.weather.summary} {plan.weather.temp}°C 风速 {plan.weather.wind_speed} km/h
-        </Typography>
-      </Box>
+    <>
+      <div className="grid grid-cols-3 gap-4 mb-1">
+        <div className="...">
+          <CycleMap routeLatLngs={routeLatLngs} />
+        </div>
+        <div className="...">
+          <Box className="space-y-2">
+            <Typography variant="body1">{plan.description}</Typography>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="...">
+                <Typography variant="body2">
+                  开始时间: {dayjs(plan.start_time).format("YYYY-MM-DD HH:mm")}
+                </Typography>
+                <Typography variant="body2">
+                  距离: {plan.distance_km} km
+                </Typography>
+                <Typography variant="body2">
+                  时长: {plan.duration_min} min
+                </Typography>
+              </div>
+              <div className="...">
+                <Typography variant="body2">
+                  爬升: {plan.elevation_m} m
+                </Typography>
+                <Typography variant="body2">
+                  天气: {plan.weather.summary} {plan.weather.temp}°C
+                </Typography>
+                <Typography variant="body2">
+                  风速: {plan.weather.wind_speed} km/h
+                </Typography>
+              </div>
+            </div>
+          </Box>
 
-      <Paper className="rounded overflow-hidden shadow-md h-[400px]">
-        <CycleMap routeLatLngs={routeLatLngs} />
-      </Paper>
+          <Divider />
 
-      {/* 训练数据 */}
-      <Paper className="p-4 bg-gray-50 rounded shadow-sm">
-        <Grid container spacing={2}>
-          <Grid size={{ xs:6,md:3}}>难度: {plan.difficulty} ⭐</Grid>
-          <Grid size={{ xs:6,md:3}}>TSS: {plan.tss}</Grid>
-          <Grid size={{ xs:6,md:3}}>FTP: {plan.ftp}</Grid>
-          <Grid size={{ xs:6,md:3}}>热量: {plan.calories} kcal</Grid>
-          <Grid size={{ xs:6,md:3}}>Z1: {plan.training_zones.Z1}</Grid>
-          <Grid size={{ xs:6,md:3}}>Z2: {plan.training_zones.Z2}</Grid>
-          <Grid size={{ xs:6,md:3}}>Z3: {plan.training_zones.Z3}</Grid>
-          <Grid size={{ xs:6,md:3}}>Z4: {plan.training_zones.Z4}</Grid>
-          <Grid size={{ xs:6,md:3}}>Z5: {plan.training_zones.Z5}</Grid>
-        </Grid>
-      </Paper>
+          <Paper className="p-4 bg-gray-50 rounded shadow-sm">
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 6, md: 6 }}>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <Typography variant="body2">难度：</Typography>
+                  {[1, 2, 3, 4, 5].map((i) =>
+                    i <= plan.difficulty ? (
+                      <StarIcon
+                        key={i}
+                        fontSize="small"
+                        sx={{ color: "#FFD700" }}
+                      />
+                    ) : (
+                      <StarBorderIcon
+                        key={i}
+                        fontSize="small"
+                        sx={{ color: "#FFD700" }}
+                      />
+                    )
+                  )}
+                </Box>
+              </Grid>
+              <Grid size={{ xs: 6, md: 2 }}>
+                <Typography variant="body2">TSS: {plan.tss}</Typography>
+              </Grid>
+              <Grid size={{ xs: 6, md: 2 }}>
+                <Typography variant="body2">FTP: {plan.ftp}</Typography>
+              </Grid>
+              <Grid size={{ xs: 6, md: 2 }}>
+                <Typography variant="body2">
+                  热量: {plan.calories} kcal
+                </Typography>
+              </Grid>
+            </Grid>
+          </Paper>
 
-      {/* 点赞和评论 */}
-      <Box className="flex items-center space-x-4">
-        <IconButton color="error" onClick={handleLike}>
-          <FavoriteIcon />
-        </IconButton>
-        <Typography>{likes}</Typography>
+          <Divider />
 
-        <IconButton color="primary">
-          <CommentIcon />
-        </IconButton>
-        <Typography>{comments.length}</Typography>
-      </Box>
+          {/* 训练区间 */}
+          <Box>
+            <Typography
+              variant="body2"
+              className="text-neutral-500 dark:text-neutral-400 mb-2"
+            >
+              训练区间 (Z1–Z5)
+            </Typography>
 
-      {/* 评论区 */}
-      <Paper className="p-4 space-y-2">
-        <Typography variant="h6">评论</Typography>
-        {loadingComments ? (
-          <Typography color="text.secondary">加载中...</Typography>
-        ) : comments.length === 0 ? (
-          <Typography color="text.secondary">暂无评论</Typography>
-        ) : (
-          comments.map((c) => (
-            <Box key={c.id} className="border-b py-1">
-              <Typography variant="body2">{c.content}</Typography>
-              <Typography variant="caption" color="text.secondary">
-                {dayjs(c.created_at).format("YYYY-MM-DD HH:mm")}
-              </Typography>
-            </Box>
-          ))
-        )}
-        <Box className="flex gap-2 mt-2">
-          <TextField
-            variant="outlined"
-            size="small"
-            placeholder="写下你的评论..."
-            fullWidth
-            value={commentInput}
-            onChange={(e) => setCommentInput(e.target.value)}
+            {Object.entries(plan.training_zones as Record<string, number>).map(
+              ([zone, v]) => (
+                <Box key={zone} className="mb-2">
+                  <Box className="flex justify-between text-xs mb-1">
+                    <span>{zone}</span>
+                    <span>{v}%</span>
+                  </Box>
+                  <LinearProgress
+                    variant="determinate"
+                    value={v}
+                    className="rounded-lg h-2"
+                  />
+                </Box>
+              )
+            )}
+          </Box>
+
+          <Divider />
+
+          <Box className="flex justify-between items-center mt-0.5">
+            <AvatarGroup max={9}>
+              {(plan.participants ?? []).map((p) => (
+                <Avatar
+                  key={p.id}
+                  src={p.avatar_url}
+                  alt={p.name}
+                  sx={{ width: 27, height: 27 }}
+                />
+              ))}
+            </AvatarGroup>
+          </Box>
+
+          <Divider />
+          {/* 点赞和评论 */}
+          <Box className="flex items-center space-x-4">
+            <IconButton color="error" onClick={handleLike}>
+              {liked ? <Favorite /> : <FavoriteBorder />}
+            </IconButton>
+            <Typography>{likes}</Typography>
+
+            <IconButton color="primary">
+              <CommentIcon />
+            </IconButton>
+            <Typography>{comments.length}</Typography>
+          </Box>
+        </div>
+        <div className="...">
+          <Box
+            component="img"
+            src={plan.map_image_url}
+            alt="route"
+            loading="eager"
+            sx={{
+              width: "50%",
+              height: "50%", // or "100%" + parent 控制高度
+              objectFit: "cover",
+              filter: (theme) =>
+                theme.palette.mode === "dark"
+                  ? "brightness(0.75)"
+                  : "brightness(0.95)",
+            }}
           />
-          <Button variant="contained" color="primary" onClick={handleSendComment}>
-            发送
-          </Button>
-        </Box>
-      </Paper>
-    </Box>
+        </div>
+        <div className="col-span-1 col-start-2 ...">
+          {/* 评论区 */}
+          <Paper className="p-4 space-y-2">
+            <Typography variant="h6">评论</Typography>
+            {loadingComments ? (
+              <Typography>加载中...</Typography>
+            ) : comments.length === 0 ? (
+              <Typography>暂无评论</Typography>
+            ) : (
+              comments.map((c) => (
+                <Box key={c.id} className="border-b py-1">
+                  <Typography variant="body2">{c.content}</Typography>
+                  <Typography variant="caption">
+                    {dayjs(c.created_at).format("YYYY-MM-DD HH:mm")}
+                  </Typography>
+                </Box>
+              ))
+            )}
+            <Box className="flex gap-2 mt-2">
+              <TextField
+                variant="outlined"
+                size="small"
+                placeholder="写下你的评论..."
+                fullWidth
+                value={commentInput}
+                onChange={(e) => setCommentInput(e.target.value)}
+              />
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSendComment}
+              >
+                发送
+              </Button>
+            </Box>
+          </Paper>
+        </div>
+      </div>
+    </>
   );
 }

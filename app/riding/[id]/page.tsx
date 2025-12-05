@@ -1,7 +1,7 @@
 // app/riding/[id]/page.tsx
 import { supabase } from "@/lib/supabaseClient";
 import CycleDetailPage from "@/components/CycleDetailPage";
-import { Box, Container, Grid, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import Footer from "@/components/Footer";
 
 interface Props {
@@ -15,31 +15,39 @@ export default async function RidingDetail({ params }: Props) {
 
   const { data, error } = await supabase
     .from("riding_plans")
-    .select("*")
+    .select(
+       `
+          *,
+          participants:riding_plan_participants (
+          id,
+          user_id,
+          name,
+          avatar_url
+          )
+        `
+    )
     .eq("id", id)
     .single();
 
   if (error || !data) {
-    return <p className="p-4">未找到骑行计划</p>;
+    return (
+      <p className="text-8xl text-white tracking-tighter text-balance">
+        未找到骑行计划
+      </p>
+    );
+  }else{
+    console.log(data)
   }
 
   return (
-    <Container maxWidth="lg">
-      <Grid size={12}>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-          }}
-        >
-          <Typography variant="h1" gutterBottom>
-            详情
-          </Typography>
-        </Box>
-      </Grid>
+    <>
+      <Box>
+        <Typography variant="h1" gutterBottom>
+          {data.title}
+        </Typography>
+      </Box>
       <CycleDetailPage plan={data} />
       <Footer></Footer>
-    </Container>
+    </>
   );
 }
