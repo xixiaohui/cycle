@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { CYCLE_TEXT} from "../lib/util";
 import CycleCard from "@/components/CycleCard";
+import Footer from "@/components/Footer";
 
 //content
 function Title() {
@@ -194,6 +195,7 @@ export default function Home() {
         <Title></Title>
         <Content></Content>
       </Grid>
+      <Footer></Footer>
     </Container>
   );
 }

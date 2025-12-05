@@ -8,13 +8,14 @@ import {
   Typography,
   Button,
   Divider,
+  LinearProgress,
+  AvatarGroup,
+  Avatar,
 } from "@mui/material";
 import Image from "next/image";
-import { AccessTime, FavoriteBorder } from "@mui/icons-material";
+import { ArrowCircleRightOutlined, FavoriteBorder } from "@mui/icons-material";
 import { RidingPlanPro } from "@/types/ridingPlan";
 import { formatDayjs } from "@/lib/util";
-
-
 
 interface CycleCardProps {
   data: RidingPlanPro;
@@ -25,7 +26,8 @@ export default function CycleCardPro({ data }: CycleCardProps) {
     <Card
       className="
         rounded-2xl shadow-xl border border-neutral-200 dark:border-neutral-800
-        bg-white dark:bg-neutral-900 overflow-hidden transition-all duration-300
+      bg-white dark:bg-neutral-900 overflow-hidden transition-all duration-300
+        w-full
       "
     >
       {/* Banner */}
@@ -33,18 +35,22 @@ export default function CycleCardPro({ data }: CycleCardProps) {
         <Image
           src={data.map_image_url}
           alt="route"
+          sizes="(max-width: 768px) 100vw, 800px"
           fill
+          loading="eager"
           className="object-cover brightness-95 dark:brightness-75"
         />
 
         <Box className="absolute top-3 left-3 flex gap-2">
-          <Chip label={`${data.weather.summary} · ${data.weather.temp}°C`} color="primary" />
+          <Chip
+            label={`${data.weather.summary} · ${data.weather.temp}°C`}
+            color="primary"
+          />
           <Chip label={`风 ${data.weather.wind_speed} km/h`} color="default" />
         </Box>
       </Box>
 
-      <CardContent className="space-y-4">
-
+      <CardContent className="space-y-4 px-4 py-3 md:px-6 md:py-4">
         {/* 标题 */}
         <Box>
           <Typography variant="h6" className="font-bold">
@@ -66,13 +72,21 @@ export default function CycleCardPro({ data }: CycleCardProps) {
         {/* 指标数据栏 */}
         <Box className="grid grid-cols-3 gap-3 text-center">
           <Box>
-            <Typography variant="body2" className="text-neutral-500 dark:text-neutral-400">
+            <Typography
+              variant="body2"
+              className="text-neutral-500 dark:text-neutral-400"
+            >
               距离
             </Typography>
-            <Typography className="font-semibold">{data.distance_km} km</Typography>
+            <Typography className="font-semibold">
+              {data.distance_km} km
+            </Typography>
           </Box>
           <Box>
-            <Typography variant="body2" className="text-neutral-500 dark:text-neutral-400">
+            <Typography
+              variant="body2"
+              className="text-neutral-500 dark:text-neutral-400"
+            >
               时长
             </Typography>
             <Typography className="font-semibold">
@@ -80,10 +94,15 @@ export default function CycleCardPro({ data }: CycleCardProps) {
             </Typography>
           </Box>
           <Box>
-            <Typography variant="body2" className="text-neutral-500 dark:text-neutral-400">
+            <Typography
+              variant="body2"
+              className="text-neutral-500 dark:text-neutral-400"
+            >
               爬升
             </Typography>
-            <Typography className="font-semibold">{data.elevation_m} m</Typography>
+            <Typography className="font-semibold">
+              {data.elevation_m} m
+            </Typography>
           </Box>
         </Box>
 
@@ -94,12 +113,14 @@ export default function CycleCardPro({ data }: CycleCardProps) {
               key={i}
               className={`h-2 w-8 rounded ${
                 i < data.difficulty
-                  ? "bg-green-500"
+                  ? "bg-blue-500"
                   : "bg-neutral-300 dark:bg-neutral-700"
               }`}
             />
           ))}
-          <Typography className="text-sm text-neutral-500">难度 {data.difficulty}/5</Typography>
+          <Typography className="text-sm text-neutral-500">
+            难度 {data.difficulty}/5
+          </Typography>
         </Box>
 
         <Divider />
@@ -113,19 +134,21 @@ export default function CycleCardPro({ data }: CycleCardProps) {
             训练区间 (Z1–Z5)
           </Typography>
 
-          {/* {data.training_zones.map((v, i) => (
-            <Box key={i} className="mb-2">
-              <Box className="flex justify-between text-xs mb-1">
-                <span>Z{i + 1}</span>
-                <span>{v}%</span>
+          {Object.entries(data.training_zones as Record<string, number>).map(
+            ([zone, v]) => (
+              <Box key={zone} className="mb-2">
+                <Box className="flex justify-between text-xs mb-1">
+                  <span>{zone}</span>
+                  <span>{v}%</span>
+                </Box>
+                <LinearProgress
+                  variant="determinate"
+                  value={v}
+                  className="rounded-lg h-2"
+                />
               </Box>
-              <LinearProgress
-                variant="determinate"
-                value={v}
-                className="rounded-lg h-2"
-              />
-            </Box>
-          ))} */}
+            )
+          )}
         </Box>
 
         <Divider />
@@ -138,11 +161,15 @@ export default function CycleCardPro({ data }: CycleCardProps) {
           </Box>
           <Box>
             <Typography className="text-neutral-500">预估功率</Typography>
-            <Typography className="font-semibold">{data.estimated_power} W</Typography>
+            <Typography className="font-semibold">
+              {data.estimated_power} W
+            </Typography>
           </Box>
           <Box>
             <Typography className="text-neutral-500">卡路里消耗</Typography>
-            <Typography className="font-semibold">{data.calories} kcal</Typography>
+            <Typography className="font-semibold">
+              {data.calories} kcal
+            </Typography>
           </Box>
           <Box>
             <Typography className="text-neutral-500">TSS</Typography>
@@ -153,28 +180,33 @@ export default function CycleCardPro({ data }: CycleCardProps) {
         <Divider />
 
         {/* 参与人 */}
-        <Box className="flex justify-between items-center">
-          {/* <AvatarGroup max={4}>
-            {participants.map((p) => (
-              <Avatar key={p.id} src={p.avatar_url} alt={p.name} />
+        <Box className="flex justify-between items-center mt-0.5">
+          <AvatarGroup max={9}>
+            {(data.participants ?? []).map((p) => (
+              <Avatar
+                key={p.id}
+                src={p.avatar_url}
+                alt={p.name}
+                sx={{ width: 30, height: 30 }}
+              />
             ))}
-          </AvatarGroup> */}
+          </AvatarGroup>
 
-          <Button variant="outlined" startIcon={<FavoriteBorder />}>
+          {/* <Button variant="outlined" size="small" startIcon={<FavoriteBorder />}>
             收藏
-          </Button>
+          </Button> */}
         </Box>
 
         {/* CTA */}
         <Button
           fullWidth
-          variant="contained"
-          size="large"
+          variant="outlined"
+          size="small"
           className="mt-3!"
           href={`/riding/${data.id}`}
-          startIcon={<AccessTime />}
+          startIcon={<ArrowCircleRightOutlined />}
         >
-          查看计划详情
+          查看详情
         </Button>
       </CardContent>
     </Card>

@@ -75,6 +75,7 @@ export default function CycleCard({
                 src={data.map_image_url}
                 alt="route"
                 fill
+                sizes="800px"
                 className="object-cover brightness-95 dark:brightness-75"
               />
 

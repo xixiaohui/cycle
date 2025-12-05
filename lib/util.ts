@@ -61,7 +61,7 @@ export const formatDateSmart = (dateString: string) => {
 export const formatDayjs = (str: string) => {
   // const isoString = "2025-12-05T05:46:50.776423+00:00";
   const formatted = dayjs(str).format("YYYY-MM-DD HH:mm");
-  console.log(formatted);
+  // console.log(formatted);
   return formatted;
 };
 

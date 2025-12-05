@@ -36,14 +36,14 @@ export default function CycleMap({ routeLatLngs }: Props) {
   // 用 DivIcon 包装 MUI Icon
   const startIcon = L.divIcon({
     className: "",
-    html: `<div style="color: green; font-size: 24px;">⏱️</div>`,
+    html: `<div style="color: green; font-size: 10px;">⏱️</div>`,
     iconSize: [24, 24],
     iconAnchor: [12, 12],
   });
 
   const endIcon = L.divIcon({
     className: "",
-    html: `<div style="color: red; font-size: 24px;">🏁</div>`,
+    html: `<div style="color: red; font-size: 10px;">🏁</div>`,
     iconSize: [24, 24],
     iconAnchor: [12, 12],
   });

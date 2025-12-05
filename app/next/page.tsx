@@ -1,6 +1,7 @@
 "use client";
 import CycleCard from "@/components/CycleCard";
 import CycleCardPro from "@/components/CycleCardPro";
+import Footer from "@/components/Footer";
 import { supabase } from "@/lib/supabaseClient";
 import { RidingPlanPro } from "@/types/ridingPlan";
 import { BikeScooter } from "@mui/icons-material";
@@ -22,7 +23,17 @@ export default function NextPage() {
       setLoading(true);
       const { data, error } = await supabase
         .from("riding_plans")
-        .select("*")
+        .select(
+          `
+          *,
+          participants:riding_plan_participants (
+          id,
+          user_id,
+          name,
+          avatar_url
+          )
+        `
+        )
         .order("start_time", { ascending: false })
         .limit(10);
 
@@ -30,6 +41,7 @@ export default function NextPage() {
         console.error("获取骑行计划失败:", error);
         setPlans([]);
       } else {
+        console.log(data)
         setPlans(data || []);
       }
       setLoading(false);
@@ -59,7 +71,6 @@ export default function NextPage() {
     >
       <Grid
         container
-        columns={12}
         spacing={2}
         // sx={{ border: "1px solid blue" }}
       >
@@ -70,7 +81,7 @@ export default function NextPage() {
           <Box
             sx={{
               display: "flex",
-              flexDirection: "row",
+              flexDirection: {xs:"column",md:"row"},
               justifyContent: "space-between",
             }}
           >
@@ -91,24 +102,17 @@ export default function NextPage() {
           </Box>
         </Grid>
 
-        
-        <Grid size={{ xs: 12, md: 12 }}>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              // border: "1px solid red",
-            }}
-            gap={1}
-          >
-            <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {plans.map((plan) => (
-                <CycleCardPro key={plan.id} data={plan} />
-              ))}
-            </div>
-          </Box>
-        </Grid>
+
+        <Box className="p-1 w-full" >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {plans.map((plan) => (
+              <CycleCardPro key={plan.id} data={plan} />
+            ))}
+          </div>
+        </Box>
+
       </Grid>
+      <Footer></Footer>
     </Container>
   );
 }

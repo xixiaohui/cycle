@@ -6,13 +6,15 @@ export interface Location {
   lng: number;
 }
 
-export interface TrainingZones {
-  Z1: number;
-  Z2: number;
-  Z3: number;
-  Z4: number;
-  Z5: number;
-}
+// export interface TrainingZones {
+//   Z1: number;
+//   Z2: number;
+//   Z3: number;
+//   Z4: number;
+//   Z5: number;
+// }
+
+type TrainingZones = Record<"Z1" | "Z2" | "Z3" | "Z4" | "Z5", number>;
 
 export interface Weather {
   summary: string;
@@ -43,6 +45,7 @@ export interface RidingPlanPro {
   comments_count: number;
   is_public: boolean;
   created_at: string;
+  participants?:Participants[];
 }
 
 export interface Comment {
@@ -50,4 +53,12 @@ export interface Comment {
   plan_id:number;
   content:string;
   created_at:string;
+}
+
+export interface Participants {
+  id:number;
+  plan_id:number;
+  user_id:number;
+  name:string;
+  avatar_url:string;
 }

@@ -2,6 +2,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import CycleDetailPage from "@/components/CycleDetailPage";
 import { Box, Container, Grid, Typography } from "@mui/material";
+import Footer from "@/components/Footer";
 
 interface Props {
   params: Promise<{
@@ -38,7 +39,7 @@ export default async function RidingDetail({ params }: Props) {
         </Box>
       </Grid>
       <CycleDetailPage plan={data} />
-
+      <Footer></Footer>
     </Container>
   );
 }
