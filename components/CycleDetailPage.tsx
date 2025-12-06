@@ -90,10 +90,47 @@ export default function CycleDetailPage({ plan }: Props) {
     setLikes(likes + 1);
     localStorage.setItem(`liked-${plan.id}`, "true");
 
-    await supabase
+    // 更新 localStorage 缓存
+    const cached = localStorage.getItem("ridingPlans");
+
+    let plans:RidingPlanPro[] = [];
+
+    if (cached) {
+      try {
+        // const plans: RidingPlanPro[] = JSON.parse(cached);
+
+        const parsed = cached ? JSON.parse(cached) : [];
+
+        plans = Array.isArray(parsed) ? parsed : [];
+
+        console.log("plans is " + plans)
+        const updatedPlans = plans.map((p) =>
+          p.id === plan.id ? { ...p, likes: p.likes + 1 } : p
+        );
+        localStorage.setItem("ridingPlans", JSON.stringify(updatedPlans));
+      } catch (err) {
+        console.error("解析 ridingPlans 缓存失败:", err);
+      }
+    }
+
+    const { error } = await supabase
       .from("riding_plans")
       .update({ likes: likes + 1 })
       .eq("id", plan.id);
+
+    if (error) {
+      console.error("更新数据库失败:", error);
+      // 回滚本地状态和缓存
+      setLikes(likes);
+      setLiked(false);
+
+      if (cached) {
+        try {
+          const plans: RidingPlanPro[] = JSON.parse(cached);
+          localStorage.setItem("ridingPlans", JSON.stringify(plans));
+        } catch {}
+      }
+    }
   };
 
   // 发送评论
@@ -121,7 +158,7 @@ export default function CycleDetailPage({ plan }: Props) {
     setCommentInput("");
 
     // 4️⃣ 异步插入数据库
-    const {error} = await supabase
+    const { error } = await supabase
       .from("riding_plan_comments")
       .insert({ plan_id: plan.id, content: newComment.content });
 

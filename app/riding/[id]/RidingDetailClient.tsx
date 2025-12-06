@@ -17,6 +17,7 @@ export default function RidingDetailClient({ planId }: Props) {
   useEffect(() => {
     const CACHE_KEY = `ridingPlans`; //整个列表缓存
     const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24小时
+    // const CACHE_DURATION = 1 * 60 * 1000; //1分钟
 
     async function fetchPlan() {
       setLoading(true);
