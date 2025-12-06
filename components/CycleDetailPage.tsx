@@ -12,6 +12,7 @@ import {
   Avatar,
   LinearProgress,
   Divider,
+  Tooltip,
 } from "@mui/material";
 
 import { Favorite, FavoriteBorder } from "@mui/icons-material";
@@ -27,6 +28,8 @@ import { supabase } from "@/lib/supabaseClient";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import dynamic from "next/dynamic";
+import ShareIcon from "@mui/icons-material/Share";
+import SharePoster, { decodePolyline } from "./SharePoster";
 
 interface Props {
   plan: RidingPlanPro;
@@ -166,6 +169,7 @@ export default function CycleDetailPage({ plan }: Props) {
       .map(([lat, lng]) => [lat, lng] as [number, number]);
   }, [plan.route_polyline]);
 
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -294,6 +298,15 @@ export default function CycleDetailPage({ plan }: Props) {
                 <CommentIcon />
               </IconButton>
               <Typography>{comments.length}</Typography>
+
+
+              <SharePoster
+                title="巢湖骑行路线"
+                distance={String(plan.distance_km)}
+                cover={plan.map_image_url}
+                encodedPolyline={plan.route_polyline}
+              />
+
             </Box>
 
             <Box
@@ -352,7 +365,9 @@ export default function CycleDetailPage({ plan }: Props) {
                 </Button>
               </Box>
             </Paper>
+            
           </div>
+
         </div>
       </div>
       <div className="m-2 grid grid-cols-1">
@@ -361,5 +376,16 @@ export default function CycleDetailPage({ plan }: Props) {
         </div>
       </div>
     </>
+  );
+}
+
+
+function ShareButton({ onClick }: { onClick: () => void }) {
+  return (
+    <Tooltip title="分享">
+      <IconButton onClick={onClick} color="primary">
+        <ShareIcon />
+      </IconButton>
+    </Tooltip>
   );
 }
