@@ -29,7 +29,7 @@ import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import dynamic from "next/dynamic";
 import ShareIcon from "@mui/icons-material/Share";
-import SharePoster, { decodePolyline } from "./SharePoster";
+import SharePoster from "./SharePoster";
 
 interface Props {
   plan: RidingPlanPro;
