@@ -1,5 +1,5 @@
 "use client";
-import CycleCard from "@/components/CycleCard";
+
 import CycleCardPro from "@/components/CycleCardPro";
 import Footer from "@/components/Footer";
 import { supabase } from "@/lib/supabaseClient";
@@ -21,10 +21,36 @@ export default function NextPage() {
   useEffect(() => {
     async function fetchPlans() {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("riding_plans")
-        .select(
-          `
+
+      const CACHE_KEY = "ridingPlans";
+      const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24小时
+      // const CACHE_DURATION = 1 * 60 * 1000; //1分钟
+
+      // 1️⃣ 先尝试从 localStorage 读取
+      const cached = localStorage.getItem(CACHE_KEY);
+      let shouldFetch = true;
+
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        const now = Date.now();
+
+        // 判断缓存是否过期
+        if (parsed.timestamp && now - parsed.timestamp < CACHE_DURATION) {
+          setPlans(parsed.data || []);
+          shouldFetch = false; // 缓存有效，可以延迟刷新
+          console.log("从没有过期的缓存获取数据" + parsed.data);
+        } else {
+          setPlans(parsed.data || []); // 先显示缓存，即使过期
+          console.log("从过期缓存获取数据" + parsed.data);
+        }
+      }
+
+      // 2️⃣ 拉取最新数据（总是拉一次，保持同步）
+      if (shouldFetch) {
+        const { data, error } = await supabase
+          .from("riding_plans")
+          .select(
+            `
           *,
           participants:riding_plan_participants (
           id,
@@ -33,17 +59,24 @@ export default function NextPage() {
           avatar_url
           )
         `
-        )
-        .order("start_time", { ascending: false })
-        .limit(10);
+          )
+          .order("start_time", { ascending: false })
+          .limit(100);
 
-      if (error) {
-        console.error("获取骑行计划失败:", error);
-        setPlans([]);
-      } else {
-        console.log(data)
-        setPlans(data || []);
+        if (!error && data) {
+          console.log("从supabase获取数据" + data);
+          setPlans(data); // 更新页面显示最新数据
+          // 3️⃣ 更新缓存
+          localStorage.setItem(
+            CACHE_KEY,
+            JSON.stringify({ data, timestamp: Date.now() })
+          );
+        } else if (error && !cached) {
+          setPlans([]); // 缓存也不存在，显示空
+          console.error("获取骑行计划失败:", error);
+        }
       }
+
       setLoading(false);
     }
 
@@ -69,11 +102,7 @@ export default function NextPage() {
       maxWidth="lg"
       // sx={{ border: "1px solid red" }}
     >
-      <Grid
-        container
-        spacing={2}
-        sx={{ mb:1 }}
-      >
+      <Grid container spacing={2} sx={{ mb: 1 }}>
         <Grid
           size={12}
           // sx={{ border: "1px solid blue" }}
@@ -81,7 +110,7 @@ export default function NextPage() {
           <Box
             sx={{
               display: "flex",
-              flexDirection: {xs:"column",md:"row"},
+              flexDirection: { xs: "column", md: "row" },
               justifyContent: "space-between",
             }}
           >
@@ -102,15 +131,13 @@ export default function NextPage() {
           </Box>
         </Grid>
 
-
-        <Box className="p-1 w-full" >
+        <Box className="p-1 w-full">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {plans.map((plan) => (
               <CycleCardPro key={plan.id} data={plan} />
             ))}
           </div>
         </Box>
-
       </Grid>
       <Footer></Footer>
     </Container>

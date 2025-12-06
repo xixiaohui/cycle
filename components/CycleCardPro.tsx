@@ -13,7 +13,7 @@ import {
   Avatar,
 } from "@mui/material";
 import Image from "next/image";
-import { ArrowCircleRightOutlined, FavoriteBorder } from "@mui/icons-material";
+import { ArrowCircleRightOutlined } from "@mui/icons-material";
 import { RidingPlanPro } from "@/types/ridingPlan";
 import { formatDayjs } from "@/lib/util";
 

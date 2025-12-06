@@ -36,20 +36,20 @@ export default function CycleMap({ routeLatLngs }: Props) {
   // 用 DivIcon 包装 MUI Icon
   const startIcon = L.divIcon({
     className: "",
-    html: `<div style="color: green; font-size: 10px;">⏱️</div>`,
+    html: `<div style="color: green; font-size: 15px;">⏱️</div>`,
     iconSize: [24, 24],
     iconAnchor: [12, 12],
   });
 
   const endIcon = L.divIcon({
     className: "",
-    html: `<div style="color: red; font-size: 10px;">🏁</div>`,
+    html: `<div style="color: red; font-size: 15px;">🏁</div>`,
     iconSize: [24, 24],
     iconAnchor: [12, 12],
   });
 
   return (
-    <MapContainer center={startMarker} zoom={13} className="w-full h-[400px]">
+    <MapContainer center={startMarker} zoom={13} className="w-full aspect-square md:aspect-video">
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
       <Polyline positions={routeLatLngs} color="blue" />

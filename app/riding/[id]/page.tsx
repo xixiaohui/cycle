@@ -1,53 +1,15 @@
-// app/riding/[id]/page.tsx
-import { supabase } from "@/lib/supabaseClient";
-import CycleDetailPage from "@/components/CycleDetailPage";
-import { Box, Typography } from "@mui/material";
-import Footer from "@/components/Footer";
+import RidingDetailClient from "./RidingDetailClient";
 
 interface Props {
-  params: Promise<{
-    id: string;
-  }>;
+  params: { id: string };
 }
 
-export default async function RidingDetail({ params }: Props) {
-  const { id } = await params; // ← 必须 await！否则 params 是 Promise
+export default async function Page({ params }: Props) {
 
-  const { data, error } = await supabase
-    .from("riding_plans")
-    .select(
-       `
-          *,
-          participants:riding_plan_participants (
-          id,
-          user_id,
-          name,
-          avatar_url
-          )
-        `
-    )
-    .eq("id", id)
-    .single();
+  const { id } = await params; // 从路由参数获取 planId
 
-  if (error || !data) {
-    return (
-      <p className="text-8xl text-white tracking-tighter text-balance">
-        未找到骑行计划
-      </p>
-    );
-  }else{
-    console.log(data)
-  }
+  // console.log(id)
 
-  return (
-    <>
-      <Box>
-        <Typography variant="h1" gutterBottom>
-          {data.title}
-        </Typography>
-      </Box>
-      <CycleDetailPage plan={data} />
-      <Footer></Footer>
-    </>
-  );
+  return <RidingDetailClient planId={id} />;
+
 }
