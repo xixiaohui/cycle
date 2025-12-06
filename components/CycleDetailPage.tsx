@@ -84,51 +84,45 @@ export default function CycleDetailPage({ plan }: Props) {
   }, [plan.id]);
 
   const handleLike = async () => {
-    if (liked) return;
+    const newLiked = !liked; // 切换点赞状态
+    const newLikes = newLiked ? likes + 1 : likes - 1;
 
-    setLiked(true);
-    setLikes(likes + 1);
-    localStorage.setItem(`liked-${plan.id}`, "true");
+    setLiked(newLiked);
+    setLikes(newLikes);
+
+    // 保存该条计划的独立点赞状态
+    if (newLiked) {
+      localStorage.setItem(`liked-${plan.id}`, "true");
+    } else {
+      localStorage.removeItem(`liked-${plan.id}`);
+    }
+
+    // --- 更新 Supabase ---
+    await supabase
+      .from("riding_plans")
+      .update({ likes: newLikes })
+      .eq("id", plan.id);
 
     // 更新 localStorage 缓存
     const cached = localStorage.getItem("ridingPlans");
 
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached);
+    let list: RidingPlanPro[] = [];
 
-        console.log(parsed.data)
-        const updatedPlans = parsed.data.map((p:RidingPlanPro) =>
-          p.id === plan.id ? { ...p, likes: p.likes + 1 } : p
-        );
-        console.log(updatedPlans)
-
-        localStorage.setItem("ridingPlans", JSON.stringify(updatedPlans));
-
-      } catch (err) {
-        console.error("解析 ridingPlans 缓存失败:", err);
-      }
-
+    try {
+      const parsed = cached ? JSON.parse(cached) : [];
+      list = Array.isArray(parsed.data) ? parsed.data : [];
+    } catch {
+      list = [];
     }
 
-    const { error } = await supabase
-      .from("riding_plans")
-      .update({ likes: likes + 1 })
-      .eq("id", plan.id);
+    const updatedList = list.map((p) =>
+      p.id === plan.id ? { ...p, likes: newLikes } : p
+    );
 
-    if (error) {
-      console.error("更新数据库失败:", error);
-      // 回滚本地状态和缓存
-      setLikes(likes);
-      setLiked(false);
-
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          localStorage.setItem("ridingPlans", JSON.stringify(parsed));
-        } catch {}
-      }
-    }
+    localStorage.setItem(
+      "ridingPlans",
+      JSON.stringify({ data: updatedList, timestamp: Date.now() })
+    );
   };
 
   // 发送评论

@@ -41,7 +41,7 @@ export default function RidingDetailClient({ planId }: Props) {
 
         // 从缓存列表中找当前 plan
         console.log(cachedPlans);
-        
+
         const cachedPlan = cachedPlans.find((p) => String(p.id) === planId);
         if (cachedPlan) setPlan(cachedPlan);
       }
@@ -73,6 +73,7 @@ export default function RidingDetailClient({ planId }: Props) {
           );
           updatedPlans.push(data);
 
+          console.log("RidingDetailClient--line 76--")
           localStorage.setItem(
             CACHE_KEY,
             JSON.stringify({ data: updatedPlans, timestamp: Date.now() })

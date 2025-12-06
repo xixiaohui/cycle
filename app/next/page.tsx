@@ -66,6 +66,7 @@ export default function NextPage() {
         if (!error && data) {
           console.log("从supabase获取数据" + data);
           setPlans(data); // 更新页面显示最新数据
+
           // 3️⃣ 更新缓存
           localStorage.setItem(
             CACHE_KEY,
