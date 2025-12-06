@@ -93,24 +93,22 @@ export default function CycleDetailPage({ plan }: Props) {
     // 更新 localStorage 缓存
     const cached = localStorage.getItem("ridingPlans");
 
-    let plans:RidingPlanPro[] = [];
-
     if (cached) {
       try {
-        // const plans: RidingPlanPro[] = JSON.parse(cached);
+        const parsed = JSON.parse(cached);
 
-        const parsed = cached ? JSON.parse(cached) : [];
-
-        plans = Array.isArray(parsed) ? parsed : [];
-
-        console.log("plans is " + plans)
-        const updatedPlans = plans.map((p) =>
+        console.log(parsed.data)
+        const updatedPlans = parsed.data.map((p:RidingPlanPro) =>
           p.id === plan.id ? { ...p, likes: p.likes + 1 } : p
         );
+        console.log(updatedPlans)
+
         localStorage.setItem("ridingPlans", JSON.stringify(updatedPlans));
+
       } catch (err) {
         console.error("解析 ridingPlans 缓存失败:", err);
       }
+
     }
 
     const { error } = await supabase
@@ -126,8 +124,8 @@ export default function CycleDetailPage({ plan }: Props) {
 
       if (cached) {
         try {
-          const plans: RidingPlanPro[] = JSON.parse(cached);
-          localStorage.setItem("ridingPlans", JSON.stringify(plans));
+          const parsed = JSON.parse(cached);
+          localStorage.setItem("ridingPlans", JSON.stringify(parsed));
         } catch {}
       }
     }

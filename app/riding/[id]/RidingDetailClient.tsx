@@ -41,7 +41,7 @@ export default function RidingDetailClient({ planId }: Props) {
 
         // 从缓存列表中找当前 plan
         console.log(cachedPlans);
-        console.log(Number(planId));
+        
         const cachedPlan = cachedPlans.find((p) => String(p.id) === planId);
         if (cachedPlan) setPlan(cachedPlan);
       }
