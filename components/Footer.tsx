@@ -12,6 +12,8 @@ import Typography from '@mui/material/Typography';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import TwitterIcon from '@mui/icons-material/X';
+import { Chat, ContactPhone, LocalPhone, WhatsApp } from '@mui/icons-material';
+import Email from '@mui/icons-material/Email';
 
 function Copyright() {
   return (
@@ -211,7 +213,7 @@ export default function Footer() {
               aria-label="GitHub"
               sx={{ alignSelf: 'center' }}
             >
-              <GitHubIcon />
+              <Email />
             </IconButton>
             <IconButton
               color="inherit"
@@ -220,7 +222,7 @@ export default function Footer() {
               aria-label="X"
               sx={{ alignSelf: 'center' }}
             >
-              <TwitterIcon />
+              <LocalPhone />
             </IconButton>
             <IconButton
               color="inherit"
@@ -229,7 +231,7 @@ export default function Footer() {
               aria-label="LinkedIn"
               sx={{ alignSelf: 'center' }}
             >
-              <LinkedInIcon />
+              <WhatsApp />
             </IconButton>
           </Stack>
         </Box>

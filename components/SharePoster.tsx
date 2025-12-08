@@ -1,41 +1,21 @@
 "use client";
 
-import { useRef } from "react";
-import IosShareIcon from "@mui/icons-material/IosShare";
-import { IconButton } from "@mui/material";
+import { useRef, useState } from "react";
+import ShareIcon from "@mui/icons-material/Share";
+import {
+  Backdrop,
+  Box,
+  CircularProgress,
+  IconButton,
+  Typography,
+} from "@mui/material";
 
-// ---------------------------
-// Google Polyline 解码函数（浏览器可用）
-function decodePolyline(str: string): [number, number][] {
-  let index = 0,
-    lat = 0,
-    lng = 0,
-    coordinates: [number, number][] = [];
-
-  while (index < str.length) {
-    let result = 1,
-      shift = 0,
-      b: number;
-    do {
-      b = str.charCodeAt(index++) - 63 - 1;
-      result += b << shift;
-      shift += 5;
-    } while (b >= 0x1f);
-    lat += (result & 1) ? ~(result >> 1) : result >> 1;
-
-    result = 1;
-    shift = 0;
-    do {
-      b = str.charCodeAt(index++) - 63 - 1;
-      result += b << shift;
-      shift += 5;
-    } while (b >= 0x1f);
-    lng += (result & 1) ? ~(result >> 1) : result >> 1;
-
-    coordinates.push([lat * 1e-5, lng * 1e-5] as [number, number]);
-  }
-  return coordinates;
-}
+import polyline from "polyline";
+import {
+  drawPolylineBox,
+  RenderOptions,
+  renderRouteMapOptimized,
+} from "@/lib/util";
 
 // ---------------------------
 // Props
@@ -56,89 +36,131 @@ export default function SharePoster({
   encodedPolyline,
   zoom = 15,
 }: Props) {
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const handleShare = async () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
-    const dpr = window.devicePixelRatio || 2;
-    const width = 1080;
-    const height = 1920;
+    try {
+      setLoading(true);
+      setProgress(0);
 
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    canvas.style.width = width + "px";
-    canvas.style.height = height + "px";
-    ctx.scale(dpr, dpr);
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d")!;
+      const dpr = window.devicePixelRatio || 2;
+      const width = 1080;
+      const height = 1920;
 
-    // -----------------------------
-    // 背景
-    ctx.fillStyle = "#f6f7fb";
-    ctx.fillRect(0, 0, width, height);
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
+      ctx.scale(dpr, dpr);
 
-    // -----------------------------
-    // 封面
-    const coverH = 620;
-    await drawRoundedImage(ctx, await loadImage(cover), 60, 60, width - 120, coverH, 40);
+      // await renderPosterMain(
+      //   ctx,{title,distance,cover,encodedPolyline,zoom},{width,height,onProgress:((p)=>setProgress(p))}
+      // )
 
-    // -----------------------------
-    // 标题文字
-    ctx.fillStyle = "#111";
-    ctx.font = "bold 58px sans-serif";
-    ctx.fillText(title, 60, 760);
+      await renderPoster(
+        ctx,
+        {
+          title,
+          distance,
+          cover,
+          encodedPolyline,
+          zoom,
+        },
+        {
+          width,
+          height,
+          margin: 0,
+          coverHeight: height,
+          watermarkText: "chaohucyclingclub.com",
+          onProgress: (p) => setProgress(p),
+        }
+      );
 
-    ctx.fillStyle = "#666";
-    ctx.font = "42px sans-serif";
-    ctx.fillText(`距离：${distance}`, 60, 830);
+      // await drawMapWithTrack(ctx, encodedPolyline, width, height, zoom, {
+      //   lineWidth: 8,
+      //   strokeStyle: "#ff3b30",
+      //   marginPercent: 5,
+      // });
 
-    // -----------------------------
-    // 地图区域
-    const mapBox = { x: 60, y: 900, w: 960, h: 960 };
-    drawRoundedRect(ctx, mapBox.x, mapBox.y, mapBox.w, mapBox.h, 36, "#fff", "#ddd");
-
-    // -----------------------------
-    // 解码 polyline
-    const track: [number, number][] = decodePolyline(encodedPolyline);
-
-    // -----------------------------
-    // 生成瓦片
-    const { tileUrls, xMin, yMin, xMax, yMax } = getTileUrls(track, zoom);
-
-    // -----------------------------
-    // 绘制瓦片
-    await drawMapTiles(ctx, mapBox, tileUrls, 256);
-
-    // -----------------------------
-    // 绘制轨迹（投影到瓦片像素）
-    drawTrackAligned(ctx, track, mapBox, zoom, xMin, yMin, xMax, yMax, 5);
-
-    // -----------------------------
-    // 导出 JPG
-    const url = canvas.toDataURL("image/jpeg", 0.92);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${title}-海报.jpg`;
-    a.click();
+      // 导出 JPG
+      const url = canvas.toDataURL("image/jpeg", 0.92);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${title}-海报.jpg`;
+      a.click();
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
       <IconButton onClick={handleShare}>
-        <IosShareIcon />
+        <ShareIcon />
       </IconButton>
       <canvas ref={canvasRef} style={{ display: "none" }} />
+
+      <Backdrop
+        sx={{
+          color: "#f3ebd3",
+          backgroundColor: "rgba(0,0,0,0.7)", // 蒙层颜色，加深
+          zIndex: (theme) => theme.zIndex.drawer + 5000,
+        }}
+        open={loading}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
+          <CircularProgress size={70} thickness={4} />
+          <Typography variant="body1" sx={{ opacity: 0.9 }}>
+            {progress > 0 ? `渲染中… ${progress}%` : "正在生成海报…"}
+          </Typography>
+        </Box>
+      </Backdrop>
     </>
   );
 }
 
 // ---------------------------
 // 工具函数
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((res) => {
+// function loadImage(src: string): Promise<HTMLImageElement> {
+//   return new Promise((res) => {
+//     const img = new Image();
+//     img.crossOrigin = "anonymous";
+//     img.onload = () => res(img);
+//     img.src = src;
+//   });
+// }
+
+function loadImage(src: string, timeout = 2500): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
     const img = new Image();
+    const timer = setTimeout(() => {
+      reject(new Error("Image load timeout: " + src));
+    }, timeout);
+
     img.crossOrigin = "anonymous";
-    img.onload = () => res(img);
+
+    img.onload = () => {
+      clearTimeout(timer);
+      resolve(img);
+    };
+    img.onerror = () => {
+      clearTimeout(timer);
+      reject(new Error("Image failed: " + src));
+    };
+
     img.src = src;
   });
 }
@@ -168,6 +190,72 @@ function drawRoundedRect(
   ctx.restore();
 }
 
+function getCoverSourceRect(
+  imgW: number,
+  imgH: number,
+  targetW: number,
+  targetH: number
+) {
+  const imgRatio = imgW / imgH;
+  const targetRatio = targetW / targetH;
+
+  let sw, sh, sx, sy;
+
+  if (imgRatio > targetRatio) {
+    // 图片太宽，需要裁掉左右
+    sh = imgH;
+    sw = imgH * targetRatio;
+    sx = (imgW - sw) / 2;
+    sy = 0;
+  } else {
+    // 图片太高，需要裁掉上下
+    sw = imgW;
+    sh = imgW / targetRatio;
+    sx = 0;
+    sy = (imgH - sh) / 2;
+  }
+
+  return { sx, sy, sw, sh };
+}
+
+async function drawRoundedImageChange(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number
+) {
+  // 计算裁剪区域
+  const { sx, sy, sw, sh } = getCoverSourceRect(img.width, img.height, w, h);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+  ctx.clip();
+
+  // 用 9 参数版本 drawImage 实现 cover 裁剪
+  ctx.drawImage(
+    img,
+    sx,
+    sy,
+    sw,
+    sh, // 裁剪区域
+    x,
+    y,
+    w,
+    h // 目标区域
+  );
+
+  ctx.restore();
+}
+
 async function drawRoundedImage(
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
@@ -192,12 +280,127 @@ async function drawRoundedImage(
 
 // ---------------------------
 // 绘制瓦片
-async function drawMapTiles(
-  ctx: CanvasRenderingContext2D,
-  box: { x: number; y: number; w: number; h: number },
-  tiles: string[][],
-  tileSize = 256
-) {
+
+async function emojiToImage(emoji: string, size = 32) {
+  const c = document.createElement("canvas");
+  c.width = size;
+  c.height = size;
+  const ctx = c.getContext("2d")!;
+  ctx.font = `${size * 0.9}px sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(emoji, size / 2, size / 2);
+
+  return await new Promise<HTMLImageElement>((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.src = c.toDataURL();
+  });
+}
+
+function latLngToTilePixel(lat: number, lng: number, zoom: number) {
+  const tile = Math.pow(2, zoom);
+  const x = ((lng + 180) / 360) * tile * 256;
+  const y =
+    ((1 -
+      Math.log(
+        Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)
+      ) /
+        Math.PI) /
+      2) *
+    tile *
+    256;
+  return { x, y };
+}
+
+async function renderRouteMap({
+  ctx,
+  box,
+  encodedPolyline,
+  tileUrl,
+  startIcon,
+  endIcon,
+  zoom = 15,
+  marginPercent = 5, // 留白
+  onProgress,
+}: RenderOptions) {
+  // --------------------------
+
+  // 1. Decode polyline → 经纬度数组
+  // --------------------------
+  const track = polyline.decode(encodedPolyline); // [ [lat,lng], ... ]
+
+  // --------------------------
+  // 2. 经纬度 → 瓦片像素坐标
+  // --------------------------
+  const tilePixels = track.map(([lat, lng]) =>
+    latLngToTilePixel(lat, lng, zoom)
+  );
+
+  const xs = tilePixels.map((p) => p.x);
+  const ys = tilePixels.map((p) => p.y);
+
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+
+  // --------------------------
+  // 3. 计算需要的 tile 范围（包含轨迹）
+  // --------------------------
+  const xMinTile = Math.floor(minX / 256);
+  const xMaxTile = Math.floor(maxX / 256);
+  const yMinTile = Math.floor(minY / 256);
+  const yMaxTile = Math.floor(maxY / 256);
+
+  const tileRows = yMaxTile - yMinTile + 1;
+  const tileCols = xMaxTile - xMinTile + 1;
+
+  // 计算 tile 总数
+  const totalTiles = (yMaxTile - yMinTile + 1) * (xMaxTile - xMinTile + 1);
+  let loaded = 0;
+
+  // --------------------------
+  // 4. 预加载 Tiles
+  // --------------------------
+  const tileImages = [];
+  for (let ty = yMinTile; ty <= yMaxTile; ty++) {
+    const row = [];
+    for (let tx = xMinTile; tx <= xMaxTile; tx++) {
+      const url = tileUrl(zoom, tx, ty);
+      const img = await loadImage(url);
+
+      //loading----------------------start
+      loaded++;
+
+      if (onProgress) {
+        const percent = Math.round((loaded / totalTiles) * 100);
+        onProgress(percent);
+      }
+      //loading----------------------end
+
+      row.push(img);
+    }
+    tileImages.push(row);
+  }
+
+  // --------------------------
+  // 5. 在 box 中自动缩放 + 居中
+  // --------------------------
+  const mapPixelW = (xMaxTile - xMinTile + 1) * 256;
+  const mapPixelH = (yMaxTile - yMinTile + 1) * 256;
+
+  const scale =
+    Math.min(box.w / mapPixelW, box.h / mapPixelH) * (1 - marginPercent / 100);
+
+  const xOffset =
+    box.x + (box.w - mapPixelW * scale) / 2 - xMinTile * 256 * scale;
+  const yOffset =
+    box.y + (box.h - mapPixelH * scale) / 2 - yMinTile * 256 * scale;
+
+  // --------------------------
+  // 6. 圆角裁剪
+  // --------------------------
   ctx.save();
   const r = 36;
   ctx.beginPath();
@@ -209,51 +412,43 @@ async function drawMapTiles(
   ctx.closePath();
   ctx.clip();
 
-  for (let i = 0; i < tiles.length; i++) {
-    for (let j = 0; j < tiles[i].length; j++) {
-      const url = tiles[i][j];
-      const img = await loadImage(url);
-      ctx.drawImage(ctx.canvas, 0, 0, ctx.canvas.width, ctx.canvas.height); // 调整绘制逻辑
-      ctx.drawImage(img, box.x + j * tileSize, box.y + i * tileSize, tileSize, tileSize);
+  // --------------------------
+  // 7. 绘制 tiles
+  // --------------------------
+  for (let i = 0; i < tileRows; i++) {
+    for (let j = 0; j < tileCols; j++) {
+      const img = tileImages[i][j];
+      const px = (xMinTile + j) * 256;
+      const py = (yMinTile + i) * 256;
+
+      ctx.drawImage(
+        img,
+        px * scale + xOffset,
+        py * scale + yOffset,
+        256 * scale,
+        256 * scale
+      );
     }
   }
-  ctx.restore();
-}
 
-// ---------------------------
-// 绘制轨迹，和瓦片完全对齐
-function drawTrackAligned(
-  ctx: CanvasRenderingContext2D,
-  track: [number, number][],
-  box: { x: number; y: number; w: number; h: number },
-  zoom: number,
-  xMinTile: number,
-  yMinTile: number,
-  xMaxTile: number,
-  yMaxTile: number,
-  marginPercent = 5
-) {
-  const points = track.map(([lat, lng]) => latLngToTilePixel(lat, lng, zoom));
+  // --------------------------
+  // 8. 绘制渐变轨迹
+  // --------------------------
+  const grad = ctx.createLinearGradient(
+    box.x,
+    box.y,
+    box.x + box.w,
+    box.y + box.h
+  );
+  grad.addColorStop(0, "#00f");
+  grad.addColorStop(1, "#f00");
 
-  const minX = xMinTile * 256;
-  const maxX = (xMaxTile + 1) * 256;
-  const minY = yMinTile * 256;
-  const maxY = (yMaxTile + 1) * 256;
-
-  const scale = Math.min(box.w / (maxX - minX), box.h / (maxY - minY)) * (1 - marginPercent / 100);
-  const xOffset = box.x - minX * scale + (box.w - (maxX - minX) * scale) / 2;
-  const yOffset = box.y - minY * scale + (box.h - (maxY - minY) * scale) / 2;
-
-  ctx.save();
   ctx.beginPath();
-  ctx.lineWidth = 8;
-  ctx.strokeStyle = "#ff3b30";
-  ctx.lineJoin = "round";
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = grad;
   ctx.lineCap = "round";
-  ctx.shadowColor = "rgba(255,59,48,0.3)";
-  ctx.shadowBlur = 10;
 
-  points.forEach((p, i) => {
+  tilePixels.forEach((p, i) => {
     const x = p.x * scale + xOffset;
     const y = p.y * scale + yOffset;
     if (i === 0) ctx.moveTo(x, y);
@@ -261,49 +456,275 @@ function drawTrackAligned(
   });
 
   ctx.stroke();
+
+  // --------------------------
+  // 9. 绘制起点终点
+  // --------------------------
+  const start = tilePixels[0];
+  const end = tilePixels[tilePixels.length - 1];
+
+  if (startIcon)
+    ctx.drawImage(
+      startIcon,
+      start.x * scale + xOffset - startIcon.width / 2,
+      start.y * scale + yOffset - startIcon.height / 2
+    );
+
+  if (endIcon)
+    ctx.drawImage(
+      endIcon,
+      end.x * scale + xOffset - endIcon.width / 2,
+      end.y * scale + yOffset - endIcon.height / 2
+    );
+
   ctx.restore();
 }
 
-// ---------------------------
-// 经纬度 → 瓦片像素
-function latLngToTilePixel(lat: number, lng: number, zoom: number) {
-  const n = Math.pow(2, zoom);
-  const xTile = ((lng + 180) / 360) * n;
-  const yTile = ((1 - Math.log(Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)) / Math.PI) / 2) * n;
-
-  return { x: xTile * 256, y: yTile * 256 };
+interface PosterLayoutOptions {
+  width: number;
+  height: number;
+  margin?: number;
+  coverHeight?: number;
+  lineWidth?: number;
+  strokeStyle?: string;
+  titleFont?: string;
+  distanceFont?: string;
+  watermarkFont?: string;
+  watermarkText?: string;
+  onProgress?: (p: number) => void; // 新增进度回调
 }
 
-// ---------------------------
-// 根据轨迹生成瓦片 URL，并返回瓦片范围
-function getTileUrls(track: [number, number][], zoom: number) {
-  const lats = track.map((p) => p[0]);
-  const lngs = track.map((p) => p[1]);
-  const minLat = Math.min(...lats);
-  const maxLat = Math.max(...lats);
-  const minLng = Math.min(...lngs);
-  const maxLng = Math.max(...lngs);
+interface PosterData {
+  title: string;
+  distance: string;
+  cover: string;
+  encodedPolyline: string;
+  zoom?: number;
+}
 
-  const lat2tile = (lat: number, z: number) =>
-    Math.floor(((1 - Math.log(Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)) / Math.PI) / 2) * Math.pow(2, z));
-  const lng2tile = (lng: number, z: number) => Math.floor(((lng + 180) / 360) * Math.pow(2, z));
+/**
+ * 渲染海报到 canvas 上
+ */
+export async function renderPoster(
+  ctx: CanvasRenderingContext2D,
+  data: PosterData,
+  options: PosterLayoutOptions
+) {
+  const {
+    width,
+    height,
+    margin = 60,
+    coverHeight = 480,
+    lineWidth = 6,
+    strokeStyle = "#ff3b30",
+    titleFont = "bold 58px sans-serif",
+    distanceFont = "42px sans-serif",
+    watermarkFont = "28px sans-serif",
+    watermarkText = "chaohucyclingclub.com",
+    onProgress,
+  } = options;
 
-  const xMin = lng2tile(minLng, zoom);
-  const xMax = lng2tile(maxLng, zoom);
-  const yMin = lat2tile(maxLat, zoom);
-  const yMax = lat2tile(minLat, zoom);
+  const zoom = data.zoom ?? 15;
 
-  const subdomains = ["a", "b", "c"];
-  const tileUrls: string[][] = [];
+  // -----------------------------
+  // 1. 背景
+  ctx.fillStyle = "#1c1f33";
+  ctx.fillRect(0, 0, width, height);
 
-  for (let y = yMin; y <= yMax; y++) {
-    const row: string[] = [];
-    for (let x = xMin; x <= xMax; x++) {
-      const s = subdomains[Math.floor(Math.random() * subdomains.length)];
-      row.push(`https://${s}.tile.openstreetmap.org/${zoom}/${x}/${y}.png`);
-    }
-    tileUrls.push(row);
+  // -----------------------------
+  // 2. 地图区域全幅铺满
+  const mapBox = { x: 0, y: 0, w: width, h: height };
+  drawRoundedRect(
+    ctx,
+    mapBox.x,
+    mapBox.y,
+    mapBox.w,
+    mapBox.h,
+    0,
+    "#1c1f33",
+    "#1c1f33"
+  );
+
+  // -----------------------------
+  // 封面叠加
+  await drawRoundedImageChange(
+    ctx,
+    await loadImage(data.cover.replace("/800/450", "/1080/1920")),
+    margin,
+    margin,
+    width - margin * 2,
+    coverHeight,
+    10
+  );
+
+  // -----------------------------------
+  // 瓦片地图
+  const startIcon = await emojiToImage("⏱️", 32);
+  const endIcon = await emojiToImage("🏁", 32);
+
+  const tileBox = { x: 0, y: 0, w: width, h: height };
+  await renderRouteMapOptimized({
+    ctx,
+    box: tileBox,
+    encodedPolyline: data.encodedPolyline,
+    tileUrl: (z, x, y) => `https://tile.openstreetmap.org/${z}/${x}/${y}.png`,
+    startIcon,
+    endIcon,
+    zoom,
+    onProgress: onProgress,
+  });
+
+  //-------------------------------------------
+  // 运动轨迹
+  const trackBox = { x: 0, y: 960, w: width / 2, h: width / 2 };
+  drawPolylineBox(ctx, data.encodedPolyline, trackBox);
+
+  // -----------------------------
+  // 4. 标题文字
+  ctx.fillStyle = "#f3ebd3";
+  ctx.font = titleFont;
+  ctx.fillText(data.title, margin, coverHeight + margin + 60);
+
+  ctx.font = distanceFont;
+  ctx.fillText(`距离：${data.distance}km`, margin, coverHeight + margin + 140);
+
+  // -----------------------------
+
+  drawWatermarkBar(ctx, {
+    text: "chaohucycling.com",
+    width: width,
+    height: height,
+  });
+}
+
+/**
+ * 渲染海报到 canvas 上
+ */
+export async function renderPosterMain(
+  ctx: CanvasRenderingContext2D,
+  data: PosterData,
+  options: PosterLayoutOptions
+) {
+  const {
+    width,
+    height,
+    margin = 60,
+    coverHeight = 480,
+    lineWidth = 6,
+    strokeStyle = "#ff3b30",
+    titleFont = "bold 58px sans-serif",
+    distanceFont = "42px sans-serif",
+    watermarkFont = "28px sans-serif",
+    watermarkText = "chaohucyclingclub.com",
+    onProgress,
+  } = options;
+
+  const zoom = data.zoom ?? 15;
+
+  // -----------------------------
+  // 背景
+  ctx.fillStyle = "#1c1f33";
+  ctx.fillRect(0, 0, width, height);
+
+  // -----------------------------
+  // 封面
+  const coverH = 620;
+  await drawRoundedImage(
+    ctx,
+    await loadImage(data.cover),
+    60,
+    60,
+    width - 120,
+    coverH,
+    40
+  );
+
+  // -----------------------------
+  // 标题文字
+  ctx.fillStyle = "#f3ebd3";
+  ctx.font = "bold 58px sans-serif";
+  ctx.fillText(data.title, 60, 760);
+
+  ctx.fillStyle = "#f3ebd3";
+  ctx.font = "42px sans-serif";
+  ctx.fillText(`距离：${data.distance}km`, 60, 830);
+
+  // -----------------------------
+  // 地图区域
+  const mapBox = { x: 60, y: 900, w: 960, h: 960 };
+  drawRoundedRect(
+    ctx,
+    mapBox.x,
+    mapBox.y,
+    mapBox.w,
+    mapBox.h,
+    36,
+    "#1c1f33",
+    "#1c1f33"
+  );
+
+  const startIcon = await emojiToImage("⏱️", 32);
+  const endIcon = await emojiToImage("🏁", 32);
+
+  await renderRouteMap({
+    ctx,
+    box: mapBox,
+    encodedPolyline: data.encodedPolyline,
+    tileUrl: (z, x, y) => `https://tile.openstreetmap.org/${z}/${x}/${y}.png`,
+    startIcon: startIcon,
+    endIcon: endIcon,
+    zoom: zoom,
+    onProgress: onProgress, // <- 渲染进度
+  });
+
+  // -----------------------------
+  // 5. 底部水印
+  ctx.fillStyle = "#f3ebd3";
+  ctx.font = watermarkFont;
+  ctx.textAlign = "center";
+  ctx.fillText(watermarkText, width / 2, height - 60);
+}
+
+/**
+ * 在画布底部绘制：背景色条 + 居中文字水印
+ */
+function drawWatermarkBar(
+  ctx: CanvasRenderingContext2D,
+  options: {
+    text: string;
+    width: number;
+    height: number;
+    font?: string;
+    barHeight?: number;
+    textColor?: string;
+    barColor?: string;
+    paddingBottom?: number;
   }
+) {
+  const {
+    text,
+    width,
+    height,
+    font = "bold 32px sans-serif",
+    barHeight = 100,
+    textColor = "#f3ebd3",
+    barColor = "#1c1f33",
+    paddingBottom = 20,
+  } = options;
 
-  return { tileUrls, xMin, yMin, xMax, yMax };
+  ctx.save();
+
+  // 背景色条
+  ctx.fillStyle = barColor;
+  ctx.fillRect(0, height - barHeight, width, barHeight);
+
+  // 文字
+  ctx.font = font;
+  ctx.fillStyle = textColor;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  ctx.fillText(text, width / 2, height - barHeight / 2 + paddingBottom / 2);
+
+  ctx.restore();
 }
