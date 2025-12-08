@@ -544,15 +544,15 @@ export async function renderPoster(
 
   // -----------------------------
   // 封面叠加
-  await drawRoundedImageChange(
-    ctx,
-    await loadImage(data.cover.replace("/800/450", "/1080/1920")),
-    margin,
-    margin,
-    width - margin * 2,
-    coverHeight,
-    10
-  );
+  // await drawRoundedImageChange(
+  //   ctx,
+  //   await loadImage(data.cover.replace("/800/450", "/1080/1920")),
+  //   margin,
+  //   margin,
+  //   width - margin * 2,
+  //   coverHeight,
+  //   10
+  // );
 
   // -----------------------------------
   // 瓦片地图
