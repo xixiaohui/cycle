@@ -82,11 +82,8 @@ export default function SharePoster({
         }
       );
 
-      // await drawMapWithTrack(ctx, encodedPolyline, width, height, zoom, {
-      //   lineWidth: 8,
-      //   strokeStyle: "#ff3b30",
-      //   marginPercent: 5,
-      // });
+      // const trackBox = { x: 0, y: 960, w: width / 2, h: width / 2 };
+      // drawPolylineBox(ctx, encodedPolyline, trackBox);
 
       // 导出 JPG
       const url = canvas.toDataURL("image/jpeg", 0.92);
@@ -576,8 +573,8 @@ export async function renderPoster(
 
   //-------------------------------------------
   // 运动轨迹
-  const trackBox = { x: 0, y: 960, w: width / 2, h: width / 2 };
-  drawPolylineBox(ctx, data.encodedPolyline, trackBox);
+  // const trackBox = { x: 0, y: 960, w: width / 2, h: width / 2 };
+  // drawPolylineBox(ctx, data.encodedPolyline, trackBox);
 
   // -----------------------------
   // 4. 标题文字
@@ -591,7 +588,7 @@ export async function renderPoster(
   // -----------------------------
 
   drawWatermarkBar(ctx, {
-    text: "chaohucycling.com",
+    text: watermarkText,
     width: width,
     height: height,
   });
@@ -716,7 +713,9 @@ function drawWatermarkBar(
 
   // 背景色条
   ctx.fillStyle = barColor;
+  ctx.globalAlpha = 0.4; // 40% 透明度
   ctx.fillRect(0, height - barHeight, width, barHeight);
+  ctx.globalAlpha = 1.0; // 恢复
 
   // 文字
   ctx.font = font;
