@@ -4,25 +4,140 @@ import CycleCardPro from "@/components/CycleCardPro";
 import Footer from "@/components/Footer";
 import { supabase } from "@/lib/supabaseClient";
 import { RidingPlanPro } from "@/types/ridingPlan";
-import { BikeScooter } from "@mui/icons-material";
+import { AddAlarm, BikeScooter } from "@mui/icons-material";
 import {
   Box,
   CircularProgress,
   Container,
   Grid,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 
+const CACHE_KEY = "ridingPlans";
+const saveToLocalCache = (newRecord: RidingPlanPro) => {
+  const cached = localStorage.getItem(CACHE_KEY);
+  let list: RidingPlanPro[] = [];
+
+  if (cached) {
+    try {
+      const parsed = JSON.parse(cached);
+
+      if (Array.isArray(parsed)) {
+        list = parsed;
+      } else if (parsed && typeof parsed === "object") {
+        // 处理几种常见的“不是数组但包含数组”的场景
+        if (Array.isArray(parsed.data)) {
+          list = parsed.data; // e.g. { data: [...] }
+        } else if (Array.isArray(parsed.items)) {
+          list = parsed.items; // e.g. { items: [...] }
+        } else {
+          // parsed 是单个对象（单条记录），把它包成数组
+          list = [parsed];
+        }
+      } else {
+        // parsed 是其他类型（数字/字符串/false），重置为空数组
+        list = [];
+      }
+    } catch (err) {
+      console.warn("解析缓存失败，重建缓存：", err);
+      list = [];
+    }
+  }
+
+  // 把新记录放最前面，并且去重（以 id 为准）
+  const newId = newRecord?.id;
+  if (newId) {
+    list = [newRecord, ...list.filter((it) => it?.id !== newId)];
+  } else {
+    // 没有 id 的情形，直接插到前面
+    list.unshift(newRecord);
+  }
+
+  localStorage.setItem(CACHE_KEY, JSON.stringify(list));
+};
+
+
 export default function NextPage() {
   const [plans, setPlans] = useState<RidingPlanPro[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleAddRidingPlan = async () => {
+    // const user = (await supabase.auth.getUser()).data.user;
+    // if (!user) {
+    //   alert("请先登录");
+    //   return;
+    // }
+    const random_img_id = Math.floor(Math.random() * 201) + 100;
+    const newPlan = {
+      title: `新的骑行记录 ${random_img_id}`,
+      description: "轻松骑行，呼吸新鲜空气",
+      start_time: new Date().toISOString(),
+      end_time: null,
+      start_location: null,
+      end_location: null,
+      distance_km: null,
+      duration_min: 0,
+      difficulty: 1,
+      route_polyline: "",
+      map_image_url: `https://picsum.photos/id/${random_img_id}/800/450`,
+      weather: { temp: 22, summary: "晴", wind_speed: 3 },
+      training_zones: {
+        Z1: 25,
+        Z2: 30,
+        Z3: 20,
+        Z4: 10,
+        Z5: 5,
+      },
+      ftp: 100,
+      estimated_power: 200,
+      calories: 100,
+      tss: 70,
+      likes: 0,
+    };
+
+    const { data, error } = await supabase
+      .from("riding_plans")
+      .insert([newPlan])
+      .select()
+      .single();
+
+    if (error) {
+      console.error(error);
+      alert("新增失败");
+      return;
+    }
+
+    await supabase
+      .from("riding_plan_participants")
+      .insert([
+        {
+          plan_id: data.id,
+          user_id: "8b8c9be1-8de3-46f7-a6bd-4d7e6bdb6467",
+          name: "天复小哥",
+          avatar_url: "/static/images/avatar/3.jpg",
+        },
+      ])
+      .select()
+      .single();
+
+    console.log("新增成功:", data);
+    alert("新增成功");
+    
+    // 🔥 触发 useEffect 重新跑
+    setRefreshKey((prev) => prev + 1);
+
+    //写入本地localStorage
+    saveToLocalCache(data)
+  };
 
   useEffect(() => {
     async function fetchPlans() {
       setLoading(true);
 
-      const CACHE_KEY = "ridingPlans";
+      
       const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24小时
       // const CACHE_DURATION = 1 * 60 * 1000; //1分钟
 
@@ -82,7 +197,7 @@ export default function NextPage() {
     }
 
     fetchPlans();
-  }, []); // 空依赖数组，组件挂载时执行一次
+  }, [refreshKey]); // 空依赖数组，组件挂载时执行一次
 
   if (loading)
     return (
@@ -125,9 +240,20 @@ export default function NextPage() {
                 justifyContent: "flex-end",
               }}
             >
-              <Typography variant="body1" gutterBottom>
-                <BikeScooter /> 骑行记录
-              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                }}
+              >
+                <Tooltip title="增加记录" onClick={handleAddRidingPlan}>
+                  <AddAlarm></AddAlarm>
+                </Tooltip>
+                <Typography variant="subtitle1" gutterBottom>
+                  骑行
+                  <BikeScooter /> 记录
+                </Typography>
+              </Box>
             </Box>
           </Box>
         </Grid>

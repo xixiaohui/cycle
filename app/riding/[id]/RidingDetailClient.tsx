@@ -116,11 +116,11 @@ export default function RidingDetailClient({ planId }: Props) {
 
   return (
     <>
-      <Box>
+      {/* <Box>
         <Typography variant="h1" gutterBottom>
           {plan.title}
         </Typography>
-      </Box>
+      </Box> */}
       
       <CycleDetailPage plan={plan} />
       <Footer />

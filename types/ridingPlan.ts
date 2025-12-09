@@ -48,6 +48,7 @@ export interface RidingPlanPro {
   participants?:Participants[];
   end_time?:string;
   points_count?:number;
+  decrease?:number;
 }
 
 export interface Comment {

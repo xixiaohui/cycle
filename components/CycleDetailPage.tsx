@@ -14,7 +14,7 @@ import {
   Divider,
 } from "@mui/material";
 
-import { Favorite, FavoriteBorder } from "@mui/icons-material";
+import { Favorite, FavoriteBorder , Update} from "@mui/icons-material";
 import CommentIcon from "@mui/icons-material/Comment";
 import { useEffect, useMemo, useState } from "react";
 import { RidingPlanPro, Comment } from "@/types/ridingPlan";
@@ -242,6 +242,11 @@ export default function CycleDetailPage({ plan }: Props) {
 
   return (
     <>
+      <Box>
+        <Typography variant="h1" gutterBottom>
+          {currentPlan.title}
+        </Typography>
+      </Box>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="m-2 grid md:grid-cols-2">
           <div className="md:col-start-2">
@@ -261,7 +266,7 @@ export default function CycleDetailPage({ plan }: Props) {
                     {currentPlan.duration_min % 60}min
                   </Typography>
                   <Typography variant="body2">
-                    ⏱️平均速度:{" "}
+                    💨平均速度:{" "}
                     {currentPlan.duration_min > 0
                       ? (
                           currentPlan.distance_km /
@@ -278,6 +283,9 @@ export default function CycleDetailPage({ plan }: Props) {
                   </Typography>
                   <Typography variant="body2">
                     爬升: {currentPlan.elevation_m} m
+                  </Typography>
+                  <Typography variant="body2">
+                    下降: {currentPlan.decrease} m
                   </Typography>
                   <Typography variant="body2">
                     天气: {currentPlan.weather.summary}{" "}
@@ -388,7 +396,8 @@ export default function CycleDetailPage({ plan }: Props) {
                 <CommentIcon />
               </IconButton>
               <Typography>{comments.length}</Typography>
-
+              
+              <UpdateButton></UpdateButton>
               <SharePoster
                 title="巢湖骑行路线"
                 distance={String(currentPlan.distance_km)}
@@ -471,5 +480,16 @@ export default function CycleDetailPage({ plan }: Props) {
         </div>
       </div>
     </>
+  );
+}
+
+
+function UpdateButton() {
+
+  
+  return (
+    <IconButton color="primary" onClick={() => console.log('更新')}>
+      <Update />
+    </IconButton>
   );
 }

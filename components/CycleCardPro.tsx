@@ -35,10 +35,12 @@ export default function CycleCardPro({ data }: CycleCardProps) {
         <Image
           src={data.map_image_url}
           alt="route"
-          sizes="(max-width: 768px) 100vw, 800px"
           fill
-          loading="eager"
+          sizes="(max-width: 768px) 100vw, 800px"
           className="object-cover brightness-95 dark:brightness-75"
+          placeholder="blur"
+          blurDataURL="/chaohu.svg"
+          loading="lazy"
         />
 
         <Box className="absolute top-3 left-3 flex gap-2">

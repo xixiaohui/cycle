@@ -101,8 +101,8 @@ export default function SharePoster({
     <>
       <Tooltip title="下载海报">
         <IconButton onClick={handleShare}>
-        <ShareIcon />
-      </IconButton>
+          <ShareIcon />
+        </IconButton>
       </Tooltip>
       
       <canvas ref={canvasRef} style={{ display: "none" }} />

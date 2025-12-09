@@ -4,14 +4,20 @@ import { supabase } from "@/lib/supabaseClient";
 import { Box, Typography, Paper, LinearProgress } from "@mui/material";
 
 // Utility: Haversine distance (meters)
-function haversine([lat1, lon1]: [number, number], [lat2, lon2]: [number, number]) {
+function haversine(
+  [lat1, lon1]: [number, number],
+  [lat2, lon2]: [number, number]
+) {
   const toRad = (v: number) => (v * Math.PI) / 180;
   const R = 6371000; // meters
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -25,7 +31,7 @@ function encodePolyline(points: Array<[number, number]>) {
 
   const encode = (num: number) => {
     let sgnNum = num << 1;
-    if (num < 0) sgnNum = ~(sgnNum);
+    if (num < 0) sgnNum = ~sgnNum;
     let output = "";
     while (sgnNum >= 0x20) {
       output += String.fromCharCode((0x20 | (sgnNum & 0x1f)) + 63);
@@ -49,34 +55,104 @@ function encodePolyline(points: Array<[number, number]>) {
   return result;
 }
 
+type GpxMetadata = {
+  startTime?: string;
+  totalTime?: number;
+  totalDistance?: number;
+  cumulativeClimb?: number;
+  cumulativeDecrease?: number;
+  routeType?: number;
+};
+
+type GpxResult = {
+  points: Array<[number, number]>;
+  times: string[];
+  metadata: GpxMetadata;
+};
+
 // Parse GPX string into points and times
-function parseGpx(gpxText: string) {
+function parseGpx(gpxText: string): GpxResult {
   const parser = new DOMParser();
   const doc = parser.parseFromString(gpxText, "application/xml");
+
+  // ---- 解析轨迹点 ----
   const trkpts = Array.from(doc.querySelectorAll("trkpt"));
-  if (trkpts.length === 0) {
-    // fallback: track points in rtept or wpt
-    const rtepts = Array.from(doc.querySelectorAll("rtept"));
-    if (rtepts.length) return extractPoints(rtepts);
-    const wpts = Array.from(doc.querySelectorAll("wpt"));
-    if (wpts.length) return extractPoints(wpts);
-  }
-  return extractPoints(trkpts);
+  const pointsData = trkpts.length
+    ? extractPoints(trkpts)
+    : fallbackExtract(doc);
+
+  // ---- 解析 metadata time ----
+  const metadataEl = doc.querySelector("metadata > time");
+  const startTime = metadataEl?.textContent?.trim();
+
+  // ---- 解析扩展字段（extensions）----
+  const extensionsMetadata = extractExtensions(doc);
+
+  const metadata: GpxMetadata = {
+    startTime,
+    ...extensionsMetadata,
+  };
+
+  return {
+    ...pointsData,
+    metadata,
+  };
+}
+
+function fallbackExtract(doc: Document) {
+  const rtepts = Array.from(doc.querySelectorAll("rtept"));
+  if (rtepts.length) return extractPoints(rtepts);
+  const wpts = Array.from(doc.querySelectorAll("wpt"));
+  if (wpts.length) return extractPoints(wpts);
+
+  return { points: [], times: [] };
 }
 
 function extractPoints(nodes: Element[]) {
   const points: Array<[number, number]> = [];
   const times: string[] = [];
+
   for (const node of nodes) {
     const lat = parseFloat(node.getAttribute("lat") || "0");
     const lon = parseFloat(node.getAttribute("lon") || "0");
+
     if (Number.isFinite(lat) && Number.isFinite(lon)) {
       points.push([lat, lon]);
     }
-    const timeEl = node.querySelector("time");
-    if (timeEl && timeEl.textContent) times.push(timeEl.textContent);
+
+    const timeEl = node.getElementsByTagName("time")[0];
+    if (timeEl?.textContent) {
+      times.push(timeEl.textContent);
+    }
   }
+
   return { points, times };
+}
+
+function extractExtensions(doc: Document): GpxMetadata {
+  const ext = doc.querySelector("extensions");
+  if (!ext) return {};
+
+  const getNumber = (tag: string): number | undefined => {
+    const el = ext.querySelector(tag);
+    if (!el || !el.textContent) return undefined;
+    const v = parseFloat(el.textContent);
+    return Number.isFinite(v) ? v : undefined;
+  };
+
+  return {
+    totalTime: getNumber("totalTime"),
+    totalDistance: getNumber("totalDistance"),
+    cumulativeClimb: getNumber("cumulativeClimb"),
+    cumulativeDecrease: getNumber("cumulativeDecrease"),
+    routeType: getNumber("routeType"),
+  };
+}
+
+function calculateEndTime(startTime: string, totalTimeSec: number): string {
+  const startDate = new Date(startTime);
+  const endDate = new Date(startDate.getTime() + totalTimeSec * 1000);
+  return endDate.toISOString();
 }
 
 type Props = {
@@ -92,33 +168,40 @@ export default function GpxUploader({ planId, onDone }: Props) {
   async function handleFile(file?: File) {
     setError(null);
     if (!file) return;
+    const file_name = file.name.replace(".gpx", "");
     setLoading(true);
     try {
       const text = await file.text();
-      const { points, times } = parseGpx(text);
-      if (!points || points.length < 2) throw new Error("No track points found or too few points.");
+      const { points, times, metadata } = parseGpx(text);
+
+      // console.log(points)
+      // console.log(times)
+      // console.log(metadata)
+      // return
+      if (!points || points.length < 2)
+        throw new Error("No track points found or too few points.");
 
       // compute distance
-      let total = 0;
-      for (let i = 1; i < points.length; i++) {
-        total += haversine(points[i - 1], points[i]);
-      }
+      // let total = 0;
+      // for (let i = 1; i < points.length; i++) {
+      //   total += haversine(points[i - 1], points[i]);
+      // }
 
       // compute start/end/duration if times available
-      let startTime: string | null = null;
-      let endTime: string | null = null;
-      let durationS: number | null = null;
-      if (times && times.length) {
-        // some GPX have times per point, else first/last
-        const parseISO = (s: string) => new Date(s);
-        const t0 = parseISO(times[0]);
-        const t1 = parseISO(times[times.length - 1] || times[0]);
-        if (!isNaN(t0.getTime()) && !isNaN(t1.getTime())) {
-          startTime = t0.toISOString();
-          endTime = t1.toISOString();
-          durationS = Math.round((t1.getTime() - t0.getTime()) / 1000);
-        }
-      }
+      // let startTime: string | null = null;
+      // let endTime: string | null = null;
+      // let durationS: number | null = null;
+      // if (times && times.length) {
+      //   // some GPX have times per point, else first/last
+      //   const parseISO = (s: string) => new Date(s);
+      //   const t0 = parseISO(times[0]);
+      //   const t1 = parseISO(times[times.length - 1] || times[0]);
+      //   if (!isNaN(t0.getTime()) && !isNaN(t1.getTime())) {
+      //     startTime = t0.toISOString();
+      //     endTime = t1.toISOString();
+      //     durationS = Math.round((t1.getTime() - t0.getTime()) / 1000);
+      //   }
+      // }
 
       // encode polyline
       const encoded = encodePolyline(points);
@@ -126,12 +209,22 @@ export default function GpxUploader({ planId, onDone }: Props) {
       // update supabase riding_plans
       const updatePayload: any = {
         route_polyline: encoded,
-        distance_km: Math.round(total / 1000),
+        distance_km: Math.round(metadata.totalDistance! / 1000),
         points_count: points.length,
       };
-      if (durationS !== null) updatePayload.duration_min = Math.round(durationS / 60);
-      if (startTime) updatePayload.start_time = startTime;
-      if (endTime) updatePayload.end_time = endTime;
+      if (metadata.totalTime !== null)
+        updatePayload.duration_min = Math.round(metadata.totalTime! / 60);
+      if (metadata.startTime) updatePayload.start_time = metadata.startTime;
+      if (metadata.totalTime)
+        updatePayload.end_time = calculateEndTime(
+          metadata.startTime!,
+          metadata.totalTime!
+        );
+      if (metadata.cumulativeClimb)
+        updatePayload.elevation_m = Math.round(metadata.cumulativeClimb);
+      if (metadata.cumulativeDecrease)
+        updatePayload.decrease = Math.round(metadata.cumulativeDecrease);
+      if (file_name) updatePayload.title = file_name;
 
       const { data, error: upErr } = await supabase
         .from("riding_plans")
@@ -142,7 +235,11 @@ export default function GpxUploader({ planId, onDone }: Props) {
 
       if (upErr) throw upErr;
 
-      setStats({ distance_km: updatePayload.distance_km, duration_min: updatePayload.duration_min, points: points.length });
+      setStats({
+        distance_km: updatePayload.distance_km,
+        duration_min: updatePayload.duration_min,
+        points: points.length,
+      });
       if (onDone) onDone(data);
     } catch (e: any) {
       setError(e.message || String(e));
@@ -159,7 +256,12 @@ export default function GpxUploader({ planId, onDone }: Props) {
 
   return (
     <>
-        <GpxUploaderUI error={error} loading={loading} stats={stats} handleInputChange={handleInputChange}></GpxUploaderUI>
+      <GpxUploaderUI
+        error={error}
+        loading={loading}
+        stats={stats}
+        handleInputChange={handleInputChange}
+      ></GpxUploaderUI>
     </>
   );
 }
@@ -172,7 +274,11 @@ function GpxUploaderUI({
 }: {
   loading: boolean;
   error: string | null;
-  stats: { distance_km: number; duration_min: number | null; points: number } | null;
+  stats: {
+    distance_km: number;
+    duration_min: number | null;
+    points: number;
+  } | null;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
@@ -181,7 +287,7 @@ function GpxUploaderUI({
       className="p-4 rounded-xl border border-neutral-800 bg-neutral-900 text-neutral-100"
     >
       <Typography variant="subtitle1" className="mb-3 font-semibold">
-        Upload GPX File
+        上传 GPX 文件
       </Typography>
 
       {/* GPX Upload Input */}
@@ -205,21 +311,19 @@ function GpxUploaderUI({
         {loading && (
           <div className="mt-2 flex items-center gap-2 text-blue-400 text-sm">
             <LinearProgress className="w-full" />
-            <span>Processing...</span>
+            <span>处理中...</span>
           </div>
         )}
 
         {/* Error */}
         {error && (
-          <div className="mt-2 text-red-400 text-sm">
-            Error: {error}
-          </div>
+          <div className="mt-2 text-red-400 text-sm">错误: {error}</div>
         )}
 
         {/* Stats */}
-        {/* {stats && (
+        {stats && (
           <div className="mt-3 text-sm space-y-1 text-neutral-300">
-            <div>🚴 Distance: {(stats.distance_km / 1000).toFixed(2)} km</div>
+            <div>🚴 Distance: {stats.distance_km} km</div>
 
             {stats.duration_min != null && (
               <div>⏱️ Duration: {stats.duration_min} min</div>
@@ -227,7 +331,7 @@ function GpxUploaderUI({
 
             <div>📍 Points: {stats.points}</div>
           </div>
-        )} */}
+        )}
       </Box>
     </Paper>
   );
