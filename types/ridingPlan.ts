@@ -46,6 +46,8 @@ export interface RidingPlanPro {
   is_public: boolean;
   created_at: string;
   participants?:Participants[];
+  end_time?:string;
+  points_count?:number;
 }
 
 export interface Comment {

@@ -7,6 +7,7 @@ import {
   Box,
   CircularProgress,
   IconButton,
+  Tooltip,
   Typography,
 } from "@mui/material";
 
@@ -98,9 +99,12 @@ export default function SharePoster({
 
   return (
     <>
-      <IconButton onClick={handleShare}>
+      <Tooltip title="下载海报">
+        <IconButton onClick={handleShare}>
         <ShareIcon />
       </IconButton>
+      </Tooltip>
+      
       <canvas ref={canvasRef} style={{ display: "none" }} />
 
       <Backdrop

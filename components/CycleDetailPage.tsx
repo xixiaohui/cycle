@@ -12,7 +12,6 @@ import {
   Avatar,
   LinearProgress,
   Divider,
-  Tooltip,
 } from "@mui/material";
 
 import { Favorite, FavoriteBorder } from "@mui/icons-material";
@@ -28,8 +27,8 @@ import { supabase } from "@/lib/supabaseClient";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import dynamic from "next/dynamic";
-import ShareIcon from "@mui/icons-material/Share";
 import SharePoster from "./SharePoster";
+import GpxUploader from "./GpxUploader";
 
 interface Props {
   plan: RidingPlanPro;
@@ -39,13 +38,80 @@ const Map = dynamic(() => import("../components/CycleMap"), {
   ssr: false,
 });
 
+//把缓存取出来，再更新
+function updateRidingPlanCache(planId: string, newData: RidingPlanPro) {
+  const cacheKey = "ridingPlans";
+  // 取出缓存
+  const cachedStr = localStorage.getItem(cacheKey);
+  let cached: { data: RidingPlanPro[]; timestamp: number } = {
+    data: [],
+    timestamp: Date.now(),
+  };
+
+  if (cachedStr) {
+    try {
+      cached = JSON.parse(cachedStr);
+    } catch (e) {
+      console.warn("ridingPlans cache parse error", e);
+    }
+  }
+
+  // 找到对应 id 更新，如果没有就 push 新数据
+  const index = cached.data.findIndex(
+    (item: RidingPlanPro) => String(item.id) === planId
+  );
+  if (index >= 0) {
+    cached.data[index] = { ...cached.data[index], ...newData };
+  } else {
+    cached.data[index] = {
+      ...cached.data[index],
+      ...newData,
+      id: Number(planId),
+    };
+  }
+
+  // 更新 timestamp 并存回 localStorage
+  cached.timestamp = Date.now();
+  localStorage.setItem(cacheKey, JSON.stringify(cached));
+}
+
 export default function CycleDetailPage({ plan }: Props) {
+  const [currentPlan, setCurrentPlan] = useState(plan);
+
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentInput, setCommentInput] = useState("");
   const [loadingComments, setLoadingComments] = useState(true);
 
   const [likes, setLikes] = useState(plan.likes);
   const [liked, setLiked] = useState(false);
+
+  const [updateTrigger, setUpdateTrigger] = useState(0);
+
+  useEffect(() => {
+    setCurrentPlan(plan);
+  }, [plan]);
+
+  //获取数据库新数据
+  useEffect(() => {
+    async function fetchRidingPlan() {
+      const { data, error } = await supabase
+        .from("riding_plans")
+        .select("*")
+        .eq("id", plan.id)
+        .order("created_at", { ascending: true });
+
+      if (!error) {
+        if (!error && data && data.length > 0) {
+          setCurrentPlan((prev) => ({ ...prev, ...data[0] }));
+        }
+      } else {
+        console.error(error);
+        console.log("获取数据库新数据 fail");
+      }
+    }
+
+    fetchRidingPlan();
+  }, [updateTrigger, plan.id]);
 
   // 获取评论
   useEffect(() => {
@@ -165,10 +231,14 @@ export default function CycleDetailPage({ plan }: Props) {
 
   const routeLatLngs = useMemo(() => {
     return polyline
-      .decode(plan.route_polyline)
+      .decode(currentPlan.route_polyline)
       .map(([lat, lng]) => [lat, lng] as [number, number]);
-  }, [plan.route_polyline]);
+  }, [currentPlan.route_polyline]);
 
+  const onDoneGpx = (result: RidingPlanPro) => {
+    updateRidingPlanCache(String(result.id), result);
+    setUpdateTrigger((prev) => prev + 1); // 触发 useEffect
+  };
 
   return (
     <>
@@ -176,29 +246,45 @@ export default function CycleDetailPage({ plan }: Props) {
         <div className="m-2 grid md:grid-cols-2">
           <div className="md:col-start-2">
             <Box className="space-y-2">
-              <Typography variant="body1">{plan.description}</Typography>
+              <Typography variant="body1">{currentPlan.description}</Typography>
               <div className="grid grid-cols-2 gap-4">
                 <div className="...">
                   <Typography variant="body2">
                     开始时间:{" "}
-                    {dayjs(plan.start_time).format("YYYY-MM-DD HH:mm")}
+                    {dayjs(currentPlan.start_time).format("YYYY-MM-DD HH:mm")}
                   </Typography>
                   <Typography variant="body2">
-                    距离: {plan.distance_km} km
+                    🚴距离: {currentPlan.distance_km} km
                   </Typography>
                   <Typography variant="body2">
-                    时长: {plan.duration_min} min
+                    ⏱️时长: {Math.floor(currentPlan.duration_min / 60)}h{" "}
+                    {currentPlan.duration_min % 60}min
+                  </Typography>
+                  <Typography variant="body2">
+                    ⏱️平均速度:{" "}
+                    {currentPlan.duration_min > 0
+                      ? (
+                          currentPlan.distance_km /
+                          (currentPlan.duration_min / 60)
+                        ).toFixed(1)
+                      : 0}{" "}
+                    km/h
                   </Typography>
                 </div>
                 <div className="...">
                   <Typography variant="body2">
-                    爬升: {plan.elevation_m} m
+                    结束时间:{" "}
+                    {dayjs(currentPlan.end_time).format("YYYY-MM-DD HH:mm")}
                   </Typography>
                   <Typography variant="body2">
-                    天气: {plan.weather.summary} {plan.weather.temp}°C
+                    爬升: {currentPlan.elevation_m} m
                   </Typography>
                   <Typography variant="body2">
-                    风速: {plan.weather.wind_speed} km/h
+                    天气: {currentPlan.weather.summary}{" "}
+                    {currentPlan.weather.temp}°C
+                  </Typography>
+                  <Typography variant="body2">
+                    风速: {currentPlan.weather.wind_speed} km/h
                   </Typography>
                 </div>
               </div>
@@ -229,14 +315,18 @@ export default function CycleDetailPage({ plan }: Props) {
                   </Box>
                 </Grid>
                 <Grid size={{ xs: 6, md: 2 }}>
-                  <Typography variant="body2">TSS: {plan.tss}</Typography>
+                  <Typography variant="body2">
+                    TSS: {currentPlan.tss}
+                  </Typography>
                 </Grid>
                 <Grid size={{ xs: 6, md: 2 }}>
-                  <Typography variant="body2">FTP: {plan.ftp}</Typography>
+                  <Typography variant="body2">
+                    FTP: {currentPlan.ftp}
+                  </Typography>
                 </Grid>
                 <Grid size={{ xs: 6, md: 3 }}>
                   <Typography variant="body2">
-                    热量: {plan.calories} kcal
+                    热量: {currentPlan.calories} kcal
                   </Typography>
                 </Grid>
               </Grid>
@@ -254,7 +344,7 @@ export default function CycleDetailPage({ plan }: Props) {
               </Typography>
 
               {Object.entries(
-                plan.training_zones as Record<string, number>
+                currentPlan.training_zones as Record<string, number>
               ).map(([zone, v]) => (
                 <Box key={zone} className="mb-2">
                   <Box className="flex justify-between text-xs mb-1">
@@ -274,7 +364,7 @@ export default function CycleDetailPage({ plan }: Props) {
 
             <Box className="flex justify-between items-center mt-0.5">
               <AvatarGroup max={9}>
-                {(plan.participants ?? []).map((p) => (
+                {(currentPlan.participants ?? []).map((p) => (
                   <Avatar
                     key={p.id}
                     src={p.avatar_url}
@@ -299,20 +389,18 @@ export default function CycleDetailPage({ plan }: Props) {
               </IconButton>
               <Typography>{comments.length}</Typography>
 
-
               <SharePoster
                 title="巢湖骑行路线"
-                distance={String(plan.distance_km)}
-                cover={plan.map_image_url}
-                encodedPolyline={plan.route_polyline}
+                distance={String(currentPlan.distance_km)}
+                cover={currentPlan.map_image_url}
+                encodedPolyline={currentPlan.route_polyline}
               />
-
             </Box>
 
             <Box
               className="md:hidden"
               component="img"
-              src={plan.map_image_url}
+              src={currentPlan.map_image_url}
               alt="route"
               loading="eager"
               sx={{
@@ -365,9 +453,16 @@ export default function CycleDetailPage({ plan }: Props) {
                 </Button>
               </Box>
             </Paper>
-            
-          </div>
+            <GpxUploader
+              planId={String(plan.id)}
+              onDone={(result) => {
+                console.log("GPX parsed + 数据库已更新:", result);
+                onDoneGpx(result);
 
+                // alert("上传成功！");
+              }}
+            ></GpxUploader>
+          </div>
         </div>
       </div>
       <div className="m-2 grid grid-cols-1">
@@ -376,16 +471,5 @@ export default function CycleDetailPage({ plan }: Props) {
         </div>
       </div>
     </>
-  );
-}
-
-
-function ShareButton({ onClick }: { onClick: () => void }) {
-  return (
-    <Tooltip title="分享">
-      <IconButton onClick={onClick} color="primary">
-        <ShareIcon />
-      </IconButton>
-    </Tooltip>
   );
 }

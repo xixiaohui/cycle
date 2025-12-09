@@ -121,6 +121,7 @@ export default function RidingDetailClient({ planId }: Props) {
           {plan.title}
         </Typography>
       </Box>
+      
       <CycleDetailPage plan={plan} />
       <Footer />
     </>
