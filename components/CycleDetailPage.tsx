@@ -12,11 +12,12 @@ import {
   Avatar,
   LinearProgress,
   Divider,
+  Tooltip,
 } from "@mui/material";
 
-import { Favorite, FavoriteBorder , Update} from "@mui/icons-material";
+import { Favorite, FavoriteBorder, Update } from "@mui/icons-material";
 import CommentIcon from "@mui/icons-material/Comment";
-import { useEffect, useMemo, useState } from "react";
+import { MouseEventHandler, useEffect, useMemo, useState } from "react";
 import { RidingPlanPro, Comment } from "@/types/ridingPlan";
 
 import dayjs from "dayjs";
@@ -86,6 +87,8 @@ export default function CycleDetailPage({ plan }: Props) {
   const [liked, setLiked] = useState(false);
 
   const [updateTrigger, setUpdateTrigger] = useState(0);
+
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     setCurrentPlan(plan);
@@ -239,6 +242,10 @@ export default function CycleDetailPage({ plan }: Props) {
     updateRidingPlanCache(String(result.id), result);
     setUpdateTrigger((prev) => prev + 1); // 触发 useEffect
   };
+
+  function handleUpdate() {
+    setVisible((prev) => !prev); // 切换显隐
+  }
 
   return (
     <>
@@ -396,13 +403,14 @@ export default function CycleDetailPage({ plan }: Props) {
                 <CommentIcon />
               </IconButton>
               <Typography>{comments.length}</Typography>
-              
-              <UpdateButton></UpdateButton>
+
+              <UpdateButton onClickUpdate={handleUpdate}></UpdateButton>
               <SharePoster
-                title="巢湖骑行路线"
+                title={currentPlan.title}
                 distance={String(currentPlan.distance_km)}
                 cover={currentPlan.map_image_url}
                 encodedPolyline={currentPlan.route_polyline}
+                ridingPlan={currentPlan}
               />
             </Box>
 
@@ -462,15 +470,17 @@ export default function CycleDetailPage({ plan }: Props) {
                 </Button>
               </Box>
             </Paper>
-            <GpxUploader
-              planId={String(plan.id)}
-              onDone={(result) => {
-                console.log("GPX parsed + 数据库已更新:", result);
-                onDoneGpx(result);
+            {visible && (
+              <GpxUploader
+                planId={String(plan.id)}
+                onDone={(result) => {
+                  console.log("GPX parsed + 数据库已更新:", result);
+                  onDoneGpx(result);
 
-                // alert("上传成功！");
-              }}
-            ></GpxUploader>
+                  // alert("上传成功！");
+                }}
+              ></GpxUploader>
+            )}
           </div>
         </div>
       </div>
@@ -483,13 +493,16 @@ export default function CycleDetailPage({ plan }: Props) {
   );
 }
 
+type UpdateButtonProps = {
+  onClickUpdate?: MouseEventHandler<HTMLButtonElement>;
+};
 
-function UpdateButton() {
-
-  
+function UpdateButton({ onClickUpdate }: UpdateButtonProps) {
   return (
-    <IconButton color="primary" onClick={() => console.log('更新')}>
-      <Update />
-    </IconButton>
+    <Tooltip title="更新gpx文件">
+      <IconButton color="primary" onClick={onClickUpdate}>
+        <Update />
+      </IconButton>
+    </Tooltip>
   );
 }

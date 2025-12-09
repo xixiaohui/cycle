@@ -1,6 +1,6 @@
+import { RidingPlanPro } from "@/types/ridingPlan";
 import dayjs from "dayjs";
 import polyline from "polyline";
-
 
 export const CYCLE_TEXT: string[] = [
   `以骑行之名，与巢湖（漅湖）相伴\n沿着湖走，遇见风，遇见自己\n因为热爱，所以同行`,
@@ -358,7 +358,6 @@ export function drawPolylineBox(
   ctx.restore();
 }
 
-
 interface Box {
   x: number;
   y: number;
@@ -503,10 +502,7 @@ export async function renderRouteMapOptimized({
 
   // 4) desired scale: how many world-pixels map to one canvas-pixel
   // We want the track to occupy `fitPercent` 的 box（80~90% 常用）
-  let desiredScale = Math.min(
-    box.w / (bounds.w || 1),
-    box.h / (bounds.h || 1)
-  );
+  let desiredScale = Math.min(box.w / (bounds.w || 1), box.h / (bounds.h || 1));
   desiredScale = desiredScale * fitPercent;
 
   // Apply marginPercent (extra world-space margin around track)
@@ -553,18 +549,31 @@ export async function renderRouteMapOptimized({
   let centerWorldY = bounds.cy;
 
   // compute tile range; if > maxTiles reduce zoom until <= maxTiles or zoom==0
-  let tileRange = computeTileRangeForView(centerWorldX, centerWorldY, desiredScale, zoom);
+  let tileRange = computeTileRangeForView(
+    centerWorldX,
+    centerWorldY,
+    desiredScale,
+    zoom
+  );
   while (tileRange.count > maxTiles && zoom > 0) {
     zoom = zoom - 1;
     // recompute world pixels at new zoom
-    tilePixels = trackLatLng.map(([lat, lng]) => latLngToWorldPixel(lat, lng, zoom));
+    tilePixels = trackLatLng.map(([lat, lng]) =>
+      latLngToWorldPixel(lat, lng, zoom)
+    );
     bounds = computeBounds(tilePixels);
     bounds.w *= marginFactor;
     bounds.h *= marginFactor;
-    desiredScale = Math.min(box.w / (bounds.w || 1), box.h / (bounds.h || 1)) * fitPercent;
+    desiredScale =
+      Math.min(box.w / (bounds.w || 1), box.h / (bounds.h || 1)) * fitPercent;
     centerWorldX = bounds.cx;
     centerWorldY = bounds.cy;
-    tileRange = computeTileRangeForView(centerWorldX, centerWorldY, desiredScale, zoom);
+    tileRange = computeTileRangeForView(
+      centerWorldX,
+      centerWorldY,
+      desiredScale,
+      zoom
+    );
   }
 
   // Final tileRange ready
@@ -587,11 +596,15 @@ export async function renderRouteMapOptimized({
   let loadedTiles = 0;
   onProgress?.(0);
 
-  const results = await loadTilesConcurrently(tileUrls, concurrency, (loaded, total) => {
-    loadedTiles = loaded;
-    const p = Math.round((loaded / total) * 100);
-    onProgress?.(p);
-  });
+  const results = await loadTilesConcurrently(
+    tileUrls,
+    concurrency,
+    (loaded, total) => {
+      loadedTiles = loaded;
+      const p = Math.round((loaded / total) * 100);
+      onProgress?.(p);
+    }
+  );
 
   // Map results to images; missing images can be skipped
   const tileImages: (HTMLImageElement | null)[] = results.map((r) =>
@@ -641,11 +654,19 @@ export async function renderRouteMapOptimized({
   }
 
   // draw track on top
-  ctx.lineWidth = Math.max(3, Math.min(10, Math.round(Math.min(box.w, box.h) / 120)));
+  ctx.lineWidth = Math.max(
+    3,
+    Math.min(10, Math.round(Math.min(box.w, box.h) / 120))
+  );
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
 
-  const grad = ctx.createLinearGradient(box.x, box.y, box.x + box.w, box.y + box.h);
+  const grad = ctx.createLinearGradient(
+    box.x,
+    box.y,
+    box.x + box.w,
+    box.y + box.h
+  );
   grad.addColorStop(0, "#00aaff");
   grad.addColorStop(1, "#ff5e5e");
   ctx.strokeStyle = grad;
@@ -680,4 +701,67 @@ export async function renderRouteMapOptimized({
   onProgress?.(100);
 }
 
+export function drawPlanInfoTwoColumns(
+  ctx: CanvasRenderingContext2D,
+  box: Box,
+  data: RidingPlanPro,
+  options?: {
+    font?: string;
+    color?: string;
+    lineHeight?: number;
+    colGap?: number;
+  }
+) {
+  const font = options?.font ?? "32px sans-serif";
+  const color = options?.color ?? "#f3ebd3";
+  const lineHeight = options?.lineHeight ?? 48;
+  const colGap = options?.colGap ?? 30;
 
+  ctx.save();
+  ctx.font = font;
+  ctx.fillStyle = color;
+
+  // 把需要展示的字段映射成文本
+  const fields = [
+    ["标题", data.title],
+    ["距离", `${data.distance_km} km`],
+    ["时长", formatDuration(data.duration_min)],
+    ["海拔", `${data.elevation_m} m`],
+  ];
+
+  const half = Math.ceil(fields.length / 2);
+
+  const col1 = fields.slice(0, half);
+  const col2 = fields.slice(half);
+
+  // 每列宽度
+  const colWidth = (box.w - colGap) / 2;
+
+  // 第一列起点
+  const col1X = box.x;
+  const col2X = box.x + colWidth + colGap;
+  let y1 = box.y;
+  let y2 = box.y;
+
+  // 绘制列 1
+  for (const [label, value] of col1) {
+    if (value === undefined || value === null) continue;
+    ctx.fillText(`${label}: ${value}`, col1X, y1);
+    y1 += lineHeight;
+  }
+
+  // 绘制列 2
+  for (const [label, value] of col2) {
+    if (value === undefined || value === null) continue;
+    ctx.fillText(`${label}: ${value}`, col2X, y2);
+    y2 += lineHeight;
+  }
+
+  ctx.restore();
+}
+
+function formatDuration(min: number) {
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return `${h}h ${m}m`;
+}

@@ -13,10 +13,12 @@ import {
 
 import polyline from "polyline";
 import {
+  drawPlanInfoTwoColumns,
   drawPolylineBox,
   RenderOptions,
   renderRouteMapOptimized,
 } from "@/lib/util";
+import { RidingPlanPro } from "@/types/ridingPlan";
 
 // ---------------------------
 // Props
@@ -26,6 +28,7 @@ interface Props {
   cover: string;
   encodedPolyline: string;
   zoom?: number;
+  ridingPlan?:RidingPlanPro
 }
 
 // ---------------------------
@@ -35,6 +38,7 @@ export default function SharePoster({
   distance,
   cover,
   encodedPolyline,
+  ridingPlan,
   zoom = 15,
 }: Props) {
   const [loading, setLoading] = useState(false);
@@ -72,6 +76,7 @@ export default function SharePoster({
           cover,
           encodedPolyline,
           zoom,
+          ridingPlan
         },
         {
           width,
@@ -501,6 +506,7 @@ interface PosterData {
   cover: string;
   encodedPolyline: string;
   zoom?: number;
+  ridingPlan?:RidingPlanPro
 }
 
 /**
@@ -581,13 +587,25 @@ export async function renderPoster(
   // drawPolylineBox(ctx, data.encodedPolyline, trackBox);
 
   // -----------------------------
+  const infoStartY = coverHeight + margin + 200; // 标题区下方
+
+  const rindingPlanBox = {
+    x: margin,
+    y: infoStartY,
+    w: width - margin * 2,
+    h: height - infoStartY,
+  };
   // 4. 标题文字
+  ctx.save();
   ctx.fillStyle = "#f3ebd3";
   ctx.font = titleFont;
   ctx.fillText(data.title, margin, coverHeight + margin + 60);
 
   ctx.font = distanceFont;
   ctx.fillText(`距离：${data.distance}km`, margin, coverHeight + margin + 140);
+
+  drawPlanInfoTwoColumns(ctx,rindingPlanBox,data.ridingPlan!)
+
 
   // -----------------------------
 
