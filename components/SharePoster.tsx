@@ -657,8 +657,6 @@ export async function renderPoster(
   //   h: height,
   // };
 
-
-
   // const opts: RenderOptionsNew = {
   //   theme:'default'
   // };
@@ -680,7 +678,7 @@ export async function renderPoster(
   ctx.textAlign = "left"; // left/center/right
   ctx.textBaseline = "top";
   ctx.fillText(`${data.distance}`, start_width, start_height);
-  let metrics = ctx.measureText(data.distance);
+  const metrics = ctx.measureText(data.distance);
   const actualHeight =
     metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
 
@@ -696,6 +694,17 @@ export async function renderPoster(
   start_width = start_width + width / 2;
 
   ctx.font = distanceFont;
+  const hour_width = ctx.measureText(
+    `${Math.floor((data.ridingPlan?.duration_min || 60) / 60)}`
+  ).width;
+  const min_width = ctx.measureText(
+    `${Math.floor((data.ridingPlan?.duration_min || 60) % 60)}`
+  ).width;
+
+  ctx.font = watermarkFont;
+  const character_width = ctx.measureText(`h`).width;
+
+  ctx.font = distanceFont;
   ctx.textAlign = "left"; // left/center/right
   ctx.textBaseline = "middle";
   ctx.fillText(
@@ -703,43 +712,35 @@ export async function renderPoster(
     start_width,
     start_height + actualHeight - 7
   );
-  metrics = ctx.measureText(
-    `${Math.floor((data.ridingPlan?.duration_min || 60) / 60)}`
-  );
-
+  
   ctx.font = watermarkFont;
   ctx.textAlign = "left"; // left/center/right
   ctx.textBaseline = "middle";
   ctx.fillText(
     "h",
-    start_width + metrics.width + 5,
+    start_width + hour_width + 5,
     start_height + actualHeight
   );
 
   ctx.font = distanceFont;
-  metrics = ctx.measureText(
-    `${Math.floor((data.ridingPlan?.duration_min || 60) / 60)}h`
-  );
-
   ctx.textAlign = "left"; // left/center/right
   ctx.textBaseline = "middle";
   ctx.fillText(
     `${Math.floor((data.ridingPlan?.duration_min || 60) % 60)}`,
-    start_width + metrics.width - 10,
+    start_width + hour_width + character_width + 5,
     start_height + actualHeight - 7
   );
-  metrics = ctx.measureText(
-    `${Math.floor((data.ridingPlan?.duration_min || 60) % 60)}${Math.floor(
-      (data.ridingPlan?.duration_min || 60) % 60
-    )}`
-  );
+
 
   ctx.font = watermarkFont;
   ctx.textAlign = "left"; // left/center/right
   ctx.textBaseline = "middle";
-  ctx.fillText("m", start_width + metrics.width, start_height + actualHeight);
+  ctx.fillText(
+    "m",
+    start_width + hour_width + character_width + min_width + 5,
+    start_height + actualHeight
+  );
 
- 
   ctx.font = watermarkFont;
   ctx.textAlign = "left"; // left/center/right
   ctx.textBaseline = "top";
@@ -758,9 +759,9 @@ export async function renderPoster(
     text: watermarkText,
     width: width,
     height: height,
-    barColor:current_theme.bgColor,
-    textColor:current_theme.titleColor,
-    globalAlpha:Number(current_theme.maskColor)
+    barColor: current_theme.bgColor,
+    textColor: current_theme.titleColor,
+    globalAlpha: Number(current_theme.maskColor),
   });
 }
 
@@ -866,7 +867,7 @@ function drawWatermarkBar(
     textColor?: string;
     barColor?: string;
     paddingBottom?: number;
-    globalAlpha?:number;
+    globalAlpha?: number;
   }
 ) {
   const {
