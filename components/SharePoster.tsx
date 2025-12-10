@@ -5,8 +5,10 @@ import ShareIcon from "@mui/icons-material/Share";
 import {
   Backdrop,
   Box,
+  Button,
   CircularProgress,
   IconButton,
+  ImageListItem,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -19,6 +21,8 @@ import {
   renderRouteMapOptimized,
 } from "@/lib/util";
 import { RidingPlanPro } from "@/types/ridingPlan";
+import { Close, Download } from "@mui/icons-material";
+import { textHeightFromFont, themes, wrapText } from "@/lib/poster";
 
 // ---------------------------
 // Props
@@ -28,7 +32,7 @@ interface Props {
   cover: string;
   encodedPolyline: string;
   zoom?: number;
-  ridingPlan?:RidingPlanPro
+  ridingPlan?: RidingPlanPro;
 }
 
 // ---------------------------
@@ -43,6 +47,8 @@ export default function SharePoster({
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [url, setUrl] = useState("");
+  const [look, setLook] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -76,7 +82,7 @@ export default function SharePoster({
           cover,
           encodedPolyline,
           zoom,
-          ridingPlan
+          ridingPlan,
         },
         {
           width,
@@ -92,13 +98,17 @@ export default function SharePoster({
       // drawPolylineBox(ctx, encodedPolyline, trackBox);
 
       // 导出 JPG
-      const url = canvas.toDataURL("image/jpeg", 0.92);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${title}-海报.jpg`;
-      a.click();
+      const url = canvas.toDataURL("image/png", 0.9);
+
+      // const a = document.createElement("a");
+      // a.href = url;
+      // a.download = `${title}-海报.jpg`;
+      // a.click();
+
+      setUrl(url);
     } finally {
       setLoading(false);
+      setLook(true);
     }
   };
 
@@ -109,7 +119,7 @@ export default function SharePoster({
           <ShareIcon />
         </IconButton>
       </Tooltip>
-      
+
       <canvas ref={canvasRef} style={{ display: "none" }} />
 
       <Backdrop
@@ -133,6 +143,58 @@ export default function SharePoster({
             {progress > 0 ? `渲染中… ${progress}%` : "正在生成海报…"}
           </Typography>
         </Box>
+      </Backdrop>
+
+      <Backdrop
+        sx={{
+          color: "#f3ebd3",
+          backgroundColor: "rgba(0,0,0,0.7)", // 蒙层颜色，加深
+          zIndex: (theme) => theme.zIndex.drawer + 5000,
+        }}
+        open={look}
+      >
+        <Button
+          onClick={() => {
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${title}-海报.jpg`;
+            a.click();
+          }}
+        >
+          下载
+        </Button>
+        <Box
+          sx={{
+            overflow: "auto",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "flex-start",
+            background: "#111",
+            paddingTop: 2,
+          }}
+        >
+          {url && (
+            <ImageListItem>
+              <Box
+                component="img"
+                src={url}
+                sx={{
+                  width: 360,
+                  height: "auto",
+                  boxShadow: "0 0 12px rgba(0,0,0,0.4)",
+                }}
+              />
+            </ImageListItem>
+          )}
+        </Box>
+
+        <Button
+          onClick={() => {
+            setLook(false);
+          }}
+        >
+          关闭
+        </Button>
       </Backdrop>
     </>
   );
@@ -506,7 +568,7 @@ interface PosterData {
   cover: string;
   encodedPolyline: string;
   zoom?: number;
-  ridingPlan?:RidingPlanPro
+  ridingPlan?: RidingPlanPro;
 }
 
 /**
@@ -524,9 +586,9 @@ export async function renderPoster(
     coverHeight = 480,
     lineWidth = 6,
     strokeStyle = "#ff3b30",
-    titleFont = "bold 58px sans-serif",
-    distanceFont = "42px sans-serif",
-    watermarkFont = "28px sans-serif",
+    titleFont = "147px 'Noto Serif SC', 'STSong', 'SimSun', serif",
+    distanceFont = "67px 'Noto Serif SC', 'STSong', 'SimSun', serif",
+    watermarkFont = "57px 'Noto Serif SC', 'STSong', 'SimSun', serif",
     watermarkText = "chaohucyclingclub.com",
     onProgress,
   } = options;
@@ -586,28 +648,59 @@ export async function renderPoster(
   // const trackBox = { x: 0, y: 960, w: width / 2, h: width / 2 };
   // drawPolylineBox(ctx, data.encodedPolyline, trackBox);
 
-  // -----------------------------
-  const infoStartY = coverHeight + margin + 200; // 标题区下方
-
+  // ----------------------------
   const rindingPlanBox = {
-    x: margin,
-    y: infoStartY,
-    w: width - margin * 2,
-    h: height - infoStartY,
+    x: 0,
+    y: 0,
+    w: width,
+    h: height,
   };
+
   // 4. 标题文字
   ctx.save();
-  ctx.fillStyle = "#f3ebd3";
+
+  // const opts: RenderOptionsNew = {
+  //   theme:'default'
+  // };
+  // drawPosterText(ctx,data.ridingPlan!,width,height,opts)
+
+  const current_theme = themes["dark_gold"];
+
+  const start_height = 1420;
+  const start_width = 64;
+  ctx.fillStyle = current_theme.bgColor;
+  ctx.globalAlpha = 0.4; // 40% 透明度
+  ctx.fillRect(0, start_height, width, 200);
+  ctx.globalAlpha = 1.0; // 恢复
+
+  ctx.fillStyle = current_theme.titleColor;
   ctx.font = titleFont;
-  ctx.fillText(data.title, margin, coverHeight + margin + 60);
+  ctx.textAlign = "left"; // left/center/right
+  ctx.textBaseline = "top";
+  ctx.fillText(`${data.distance}`, start_width, start_height);
+  ctx.font = watermarkFont;
+
+  ctx.fillText("km", start_width+200, start_height);
 
   ctx.font = distanceFont;
-  ctx.fillText(`距离：${data.distance}km`, margin, coverHeight + margin + 140);
+  ctx.textAlign = "left"; // left/center/right
+  ctx.textBaseline = "top";
+  ctx.fillText(
+    `${Math.floor((data.ridingPlan?.duration_min || 60) / 60)}h${
+      (data.ridingPlan?.duration_min || 60) % 60
+    }m`,
+    start_width+width/2,
+    start_height
+  );
 
-  drawPlanInfoTwoColumns(ctx,rindingPlanBox,data.ridingPlan!)
+  // ctx.font = distanceFont;
+  // ctx.fillText(`距离：${data.distance}km`, rindingPlanBox.w / 2, 140);
+  // ctx.fillText(`时间：${data.ridingPlan?.duration_min}m`, rindingPlanBox.w / 2, 280);
 
+  // ctx.restore();
+  // // drawPlanInfoTwoColumns(ctx,rindingPlanBox,data.ridingPlan!)
 
-  // -----------------------------
+  // // -----------------------------
 
   drawWatermarkBar(ctx, {
     text: watermarkText,
@@ -724,7 +817,7 @@ function drawWatermarkBar(
     text,
     width,
     height,
-    font = "bold 32px sans-serif",
+    font = "57px 'Noto Serif SC', 'STSong', 'SimSun', serif",
     barHeight = 100,
     textColor = "#f3ebd3",
     barColor = "#1c1f33",
@@ -746,6 +839,90 @@ function drawWatermarkBar(
   ctx.textBaseline = "middle";
 
   ctx.fillText(text, width / 2, height - barHeight / 2 + paddingBottom / 2);
+
+  ctx.restore();
+}
+
+type RenderOptionsNew = {
+  width?: number;
+  height?: number;
+  theme?: string;
+  showQr?: boolean;
+  showLogo?: boolean;
+  showAvatar?: boolean;
+  bottomGradient?: boolean;
+};
+
+function drawPosterText(
+  ctx: CanvasRenderingContext2D,
+  rp: RidingPlanPro,
+  width: number,
+  height: number,
+  opts: RenderOptionsNew = {}
+) {
+  const theme = themes[opts.theme || "default"] || themes.default;
+  ctx.save();
+
+  // TOP TITLE AREA
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  // Title background mask for readability
+  if (opts.bottomGradient !== undefined && opts.bottomGradient) {
+    // If they asked bottomGradient we will draw bottom later. Here draw subtle top mask:
+    ctx.fillStyle = theme.maskColor || "rgba(0,0,0,0.18)";
+    ctx.fillRect(0, 0, width, 320);
+  }
+
+  ctx.fillStyle = theme.titleColor;
+  ctx.font = "bold 72px Inter, sans-serif";
+  const title = rp.title || "骑行记录";
+  // handle long title -> wrap into max width
+  const maxTitleW = width * 0.9;
+  const titleLines = wrapText(ctx, title, maxTitleW);
+  const titleYStart = 140;
+  const lineH = textHeightFromFont(ctx.font) + 8;
+  for (let i = 0; i < titleLines.length; i++) {
+    ctx.fillText(titleLines[i], width / 2, titleYStart + i * lineH);
+  }
+
+  // subtitle
+  if (rp.description) {
+    ctx.font = "36px Inter, sans-serif";
+    ctx.fillStyle = theme.subtitleColor;
+    ctx.fillText(
+      rp.description,
+      width / 2,
+      titleYStart + titleLines.length * lineH + 46
+    );
+  }
+
+  // BOTTOM INFO AREA
+  const baseY = height - 260;
+  const leftX = width * 0.08;
+  const rightX = width * 0.92;
+  ctx.font = "36px Inter, sans-serif";
+  ctx.fillStyle = theme.infoColor;
+  ctx.textAlign = "left";
+  ctx.fillText(`距离：${rp.distance_km ?? ""} km`, leftX, baseY);
+  ctx.textAlign = "right";
+  ctx.fillText(`用时：${rp.duration_min ?? ""} 分钟`, rightX, baseY);
+
+  ctx.textAlign = "left";
+  ctx.fillText(
+    `平均速度：${Math.round(rp.distance_km / rp.duration_min / 60) ?? ""} km/h`,
+    leftX,
+    baseY + 64
+  );
+  ctx.textAlign = "right";
+  ctx.fillText(`日期：${rp.start_time ?? ""}`, rightX, baseY + 64);
+
+  // watermark small
+  ctx.font = "20px Inter, sans-serif";
+  ctx.textAlign = "center";
+  ctx.globalAlpha = 0.8;
+  ctx.fillStyle = theme.subtitleColor;
+  ctx.fillText("Powered by chaohucyclingclub", width / 2, height - 36);
 
   ctx.restore();
 }

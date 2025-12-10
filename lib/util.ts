@@ -713,11 +713,13 @@ export function drawPlanInfoTwoColumns(
   }
 ) {
   const font = options?.font ?? "32px sans-serif";
-  const color = options?.color ?? "#f3ebd3";
+  const color = options?.color ?? "#1c1f33";
   const lineHeight = options?.lineHeight ?? 48;
   const colGap = options?.colGap ?? 30;
 
   ctx.save();
+  ctx.textAlign ="left";   // left/center/right
+  ctx.textBaseline = "top";
   ctx.font = font;
   ctx.fillStyle = color;
 
@@ -726,7 +728,7 @@ export function drawPlanInfoTwoColumns(
     ["标题", data.title],
     ["距离", `${data.distance_km} km`],
     ["时长", formatDuration(data.duration_min)],
-    ["海拔", `${data.elevation_m} m`],
+    ["累计爬升", `${data.elevation_m} m`],
   ];
 
   const half = Math.ceil(fields.length / 2);
