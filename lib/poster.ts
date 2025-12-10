@@ -339,7 +339,7 @@ async function drawRouteMap(
   let completed = 0;
   const batch = async (items: typeof tilesToFetch) => {
     const tasks: Promise<unknown>[] = [];
-    for (const t of items) tasks.push(loadTile(t).then((r) => { results.push(r); completed++; onProgress?.(clamp(completed / tilesToFetch.length)); }));
+    for (const t of items) tasks.push(loadTile(t).then((r) => { results.push(); completed++; onProgress?.(clamp(completed / tilesToFetch.length)); }));
     await Promise.all(tasks);
   };
 
