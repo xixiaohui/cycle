@@ -667,7 +667,7 @@ export async function renderPoster(
   // 4. 标题文字
   ctx.save();
   //sport_blue fresh_green dark_gold default
-  const current_theme = themes["fresh_green"];
+  const current_theme = themes["default"];
   const start_height = 1420;
   let start_width = 64;
   ctx.fillStyle = current_theme.bgColor;
