@@ -59,7 +59,7 @@ export const themes: Record<string, Theme> = {
     titleColor: '#0f172a',
     subtitleColor: '#334155',
     infoColor: '#0f172a',
-    maskColor: 'rgba(0,0,0,0.28)',
+    maskColor: '0.28',
     accent: '#1f7ed0',
   },
   sport_blue: {
@@ -68,7 +68,7 @@ export const themes: Record<string, Theme> = {
     titleColor: '#ffffff',
     subtitleColor: '#e6eefc',
     infoColor: '#ffffff',
-    maskColor: 'rgba(0,0,0,0.32)',
+    maskColor: '0.32',
     accent: '#2db4ff',
   },
   dark_gold: {
@@ -77,7 +77,7 @@ export const themes: Record<string, Theme> = {
     titleColor: '#ffd57a',
     subtitleColor: '#ffd57a',
     infoColor: '#f3e6c9',
-    maskColor: 'rgba(0,0,0,0.45)',
+    maskColor: '0.45',
     accent: '#f6c85f',
   },
   fresh_green: {
@@ -86,7 +86,7 @@ export const themes: Record<string, Theme> = {
     titleColor: '#0b3d2e',
     subtitleColor: '#0b3d2e',
     infoColor: '#0b3d2e',
-    maskColor: 'rgba(255,255,255,0.18)',
+    maskColor: '0.18',
     accent: '#2aa876',
   },
 };

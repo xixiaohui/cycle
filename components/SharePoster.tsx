@@ -23,6 +23,7 @@ import {
 import { RidingPlanPro } from "@/types/ridingPlan";
 import { Close, Download } from "@mui/icons-material";
 import { textHeightFromFont, themes, wrapText } from "@/lib/poster";
+import dayjs from "dayjs";
 
 // ---------------------------
 // Props
@@ -98,17 +99,17 @@ export default function SharePoster({
       // drawPolylineBox(ctx, encodedPolyline, trackBox);
 
       // 导出 JPG
-      const url = canvas.toDataURL("image/png", 0.9);
+      const urls = canvas.toDataURL("image/png", 0.9);
 
       // const a = document.createElement("a");
       // a.href = url;
       // a.download = `${title}-海报.jpg`;
       // a.click();
 
-      setUrl(url);
+      setUrl(urls);
+      setLook(true);
     } finally {
       setLoading(false);
-      setLook(true);
     }
   };
 
@@ -151,7 +152,7 @@ export default function SharePoster({
           backgroundColor: "rgba(0,0,0,0.7)", // 蒙层颜色，加深
           zIndex: (theme) => theme.zIndex.drawer + 5000,
         }}
-        open={look}
+        open={look && !loading}
       >
         <Button
           onClick={() => {
@@ -587,7 +588,7 @@ export async function renderPoster(
     lineWidth = 6,
     strokeStyle = "#ff3b30",
     titleFont = "147px 'Noto Serif SC', 'STSong', 'SimSun', serif",
-    distanceFont = "67px 'Noto Serif SC', 'STSong', 'SimSun', serif",
+    distanceFont = "97px 'Noto Serif SC', 'STSong', 'SimSun', serif",
     watermarkFont = "57px 'Noto Serif SC', 'STSong', 'SimSun', serif",
     watermarkText = "chaohucyclingclub.com",
     onProgress,
@@ -649,28 +650,30 @@ export async function renderPoster(
   // drawPolylineBox(ctx, data.encodedPolyline, trackBox);
 
   // ----------------------------
-  const rindingPlanBox = {
-    x: 0,
-    y: 0,
-    w: width,
-    h: height,
-  };
+  // const rindingPlanBox = {
+  //   x: 0,
+  //   y: 0,
+  //   w: width,
+  //   h: height,
+  // };
 
-  // 4. 标题文字
-  ctx.save();
+
 
   // const opts: RenderOptionsNew = {
   //   theme:'default'
   // };
   // drawPosterText(ctx,data.ridingPlan!,width,height,opts)
 
-  const current_theme = themes["dark_gold"];
+  // 4. 标题文字
+  ctx.save();
+  //sport_blue fresh_green dark_gold default
+  const current_theme = themes["default"];
 
   const start_height = 1420;
-  const start_width = 64;
+  let start_width = 64;
   ctx.fillStyle = current_theme.bgColor;
-  ctx.globalAlpha = 0.4; // 40% 透明度
-  ctx.fillRect(0, start_height, width, 200);
+  ctx.globalAlpha = Number(current_theme.maskColor); // 40% 透明度
+  ctx.fillRect(0, start_height, width, height - start_height - 100);
   ctx.globalAlpha = 1.0; // 恢复
 
   ctx.fillStyle = current_theme.titleColor;
@@ -678,26 +681,76 @@ export async function renderPoster(
   ctx.textAlign = "left"; // left/center/right
   ctx.textBaseline = "top";
   ctx.fillText(`${data.distance}`, start_width, start_height);
-  ctx.font = watermarkFont;
+  let metrics = ctx.measureText(data.distance);
+  const actualHeight =
+    metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
 
-  ctx.fillText("km", start_width+200, start_height);
+  ctx.font = watermarkFont;
+  ctx.textAlign = "left"; // left/center/right
+  ctx.textBaseline = "middle";
+  ctx.fillText(
+    "km",
+    start_width + metrics.width + 7,
+    start_height + actualHeight
+  );
+
+  start_width = start_width + width / 2;
 
   ctx.font = distanceFont;
   ctx.textAlign = "left"; // left/center/right
-  ctx.textBaseline = "top";
+  ctx.textBaseline = "middle";
   ctx.fillText(
-    `${Math.floor((data.ridingPlan?.duration_min || 60) / 60)}h${
-      (data.ridingPlan?.duration_min || 60) % 60
-    }m`,
-    start_width+width/2,
-    start_height
+    `${Math.floor((data.ridingPlan?.duration_min || 60) / 60)}`,
+    start_width,
+    start_height + actualHeight - 7
+  );
+  metrics = ctx.measureText(
+    `${Math.floor((data.ridingPlan?.duration_min || 60) / 60)}`
   );
 
-  // ctx.font = distanceFont;
-  // ctx.fillText(`距离：${data.distance}km`, rindingPlanBox.w / 2, 140);
-  // ctx.fillText(`时间：${data.ridingPlan?.duration_min}m`, rindingPlanBox.w / 2, 280);
+  ctx.font = watermarkFont;
+  ctx.textAlign = "left"; // left/center/right
+  ctx.textBaseline = "middle";
+  ctx.fillText(
+    "h",
+    start_width + metrics.width + 5,
+    start_height + actualHeight
+  );
 
-  // ctx.restore();
+  ctx.font = distanceFont;
+  metrics = ctx.measureText(
+    `${Math.floor((data.ridingPlan?.duration_min || 60) / 60)}h`
+  );
+
+  ctx.textAlign = "left"; // left/center/right
+  ctx.textBaseline = "middle";
+  ctx.fillText(
+    `${Math.floor((data.ridingPlan?.duration_min || 60) % 60)}`,
+    start_width + metrics.width - 10,
+    start_height + actualHeight - 7
+  );
+  metrics = ctx.measureText(
+    `${Math.floor((data.ridingPlan?.duration_min || 60) % 60)}${Math.floor(
+      (data.ridingPlan?.duration_min || 60) % 60
+    )}`
+  );
+
+  ctx.font = watermarkFont;
+  ctx.textAlign = "left"; // left/center/right
+  ctx.textBaseline = "middle";
+  ctx.fillText("m", start_width + metrics.width, start_height + actualHeight);
+
+ 
+  ctx.font = watermarkFont;
+  ctx.textAlign = "left"; // left/center/right
+  ctx.textBaseline = "top";
+  ctx.fillText(
+    dayjs(data.ridingPlan?.start_time).format("YYYY-MM-DD"),
+    start_width,
+    start_height + 200
+  );
+
+  ctx.restore();
   // // drawPlanInfoTwoColumns(ctx,rindingPlanBox,data.ridingPlan!)
 
   // // -----------------------------
@@ -706,6 +759,9 @@ export async function renderPoster(
     text: watermarkText,
     width: width,
     height: height,
+    barColor:current_theme.bgColor,
+    textColor:current_theme.titleColor,
+    globalAlpha:Number(current_theme.maskColor)
   });
 }
 
@@ -811,6 +867,7 @@ function drawWatermarkBar(
     textColor?: string;
     barColor?: string;
     paddingBottom?: number;
+    globalAlpha?:number;
   }
 ) {
   const {
@@ -822,13 +879,14 @@ function drawWatermarkBar(
     textColor = "#f3ebd3",
     barColor = "#1c1f33",
     paddingBottom = 20,
+    globalAlpha = 0.4,
   } = options;
 
   ctx.save();
 
   // 背景色条
   ctx.fillStyle = barColor;
-  ctx.globalAlpha = 0.4; // 40% 透明度
+  ctx.globalAlpha = globalAlpha; // 40% 透明度
   ctx.fillRect(0, height - barHeight, width, barHeight);
   ctx.globalAlpha = 1.0; // 恢复
 

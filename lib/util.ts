@@ -625,7 +625,7 @@ export async function renderRouteMapOptimized({
   ctx.save();
 
   // rounded clip
-  const r = Math.min(36, Math.min(box.w, box.h) * 0.05);
+  const r = Math.min(36, Math.min(box.w, box.h) * 0.01);
   ctx.beginPath();
   ctx.moveTo(box.x + r, box.y);
   ctx.arcTo(box.x + box.w, box.y, box.x + box.w, box.y + box.h, r);
