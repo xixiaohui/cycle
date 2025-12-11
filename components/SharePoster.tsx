@@ -560,6 +560,7 @@ interface PosterLayoutOptions {
   distanceFont?: string;
   watermarkFont?: string;
   watermarkText?: string;
+  describtionFont?:string;
   onProgress?: (p: number) => void; // 新增进度回调
 }
 
@@ -589,7 +590,8 @@ export async function renderPoster(
     strokeStyle = "#ff3b30",
     titleFont = "147px 'Noto Serif SC', 'STSong', 'SimSun', serif",
     distanceFont = "97px 'Noto Serif SC', 'STSong', 'SimSun', serif",
-    watermarkFont = "57px 'Noto Serif SC', 'STSong', 'SimSun', serif",
+    watermarkFont = "37px 'Noto Serif SC', 'STSong', 'SimSun', serif",
+    describtionFont = "37px 'Noto Serif SC', 'STSong', 'SimSun', serif",
     watermarkText = "chaohucyclingclub.com",
     onProgress,
   } = options;
@@ -750,8 +752,15 @@ export async function renderPoster(
     start_height + 200
   );
 
+  start_width = start_width - width / 2;
+  ctx.font = describtionFont;
+  ctx.fillText(
+    data.ridingPlan?.description||"",
+    start_width,
+    start_height + 300
+  );
+
   ctx.restore();
-  // // drawPlanInfoTwoColumns(ctx,rindingPlanBox,data.ridingPlan!)
 
   // // -----------------------------
 
