@@ -27,6 +27,13 @@ export const CYCLE_TEXT: string[] = [
   定居点:	合肥市、长临河镇、严店乡、三河镇、盛桥镇、同大镇、白山镇、巢湖市、中庙街道、黄麓镇、烔炀镇、中垾镇、散兵镇、槐林镇`,
 ];
 
+
+export const SHARE_IAMGE_WIDTH = 1280;
+export const SHARE_IAMGE_HEIGHT = 1707;
+const N_W = 653;
+const N_W_T = 250;
+const N_W_D = 403;
+
 export const formatDateSmart = (dateString: string) => {
   if (!dateString) return "";
 
@@ -766,4 +773,34 @@ function formatDuration(min: number) {
   const h = Math.floor(min / 60);
   const m = min % 60;
   return `${h}h ${m}m`;
+}
+
+export function drawWrappedText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number
+) {
+  const words = text.split("");
+  let line = "";
+
+  for (let i = 0; i < words.length; i++) {
+    const testLine = line + words[i];
+    const metrics = ctx.measureText(testLine);
+    const testWidth = metrics.width;
+
+    if (testWidth > maxWidth && line !== "") {
+      ctx.fillText(line, x, y);
+      line = words[i];
+      y += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+
+  if (line) {
+    ctx.fillText(line, x, y);
+  }
 }

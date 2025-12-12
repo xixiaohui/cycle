@@ -17,13 +17,17 @@ import polyline from "polyline";
 import {
   drawPlanInfoTwoColumns,
   drawPolylineBox,
+  drawWrappedText,
   RenderOptions,
   renderRouteMapOptimized,
+  SHARE_IAMGE_HEIGHT,
+  SHARE_IAMGE_WIDTH,
 } from "@/lib/util";
 import { RidingPlanPro } from "@/types/ridingPlan";
 import { Close, Download } from "@mui/icons-material";
 import { textHeightFromFont, themes, wrapText } from "@/lib/poster";
 import dayjs from "dayjs";
+
 
 // ---------------------------
 // Props
@@ -62,8 +66,9 @@ export default function SharePoster({
       if (!canvas) return;
       const ctx = canvas.getContext("2d")!;
       const dpr = window.devicePixelRatio || 2;
-      const width = 1080;
-      const height = 1920;
+      const width = SHARE_IAMGE_WIDTH;
+      // const height = 1920;
+      const height = SHARE_IAMGE_HEIGHT;
 
       canvas.width = width * dpr;
       canvas.height = height * dpr;
@@ -668,13 +673,14 @@ export async function renderPoster(
   ctx.save();
   //sport_blue fresh_green dark_gold default
   const current_theme = themes["default"];
-  const start_height = 1420;
+  let start_height = 1054;
   let start_width = 64;
   ctx.fillStyle = current_theme.bgColor;
   ctx.globalAlpha = Number(current_theme.maskColor); // 40% 透明度
   ctx.fillRect(0, start_height, width, height - start_height - 100);
   ctx.globalAlpha = 1.0; // 恢复
 
+  start_height +=100;
   ctx.fillStyle = current_theme.titleColor;
   ctx.font = titleFont;
   ctx.textAlign = "left"; // left/center/right
@@ -749,16 +755,24 @@ export async function renderPoster(
   ctx.fillText(
     dayjs(data.ridingPlan?.start_time).format("YYYY-MM-DD"),
     start_width,
-    start_height + 200
+    start_height + 150
   );
 
   start_width = start_width - width / 2;
   ctx.font = describtionFont;
-  ctx.fillText(
-    data.ridingPlan?.description||"",
+  // ctx.fillText(
+  //   data.ridingPlan?.description||"",
+  //   start_width,
+  //   start_height + 303
+  // );
+
+  drawWrappedText(ctx,
+    data.ridingPlan?.description || "",
     start_width,
-    start_height + 300
-  );
+    start_height + 303,
+    SHARE_IAMGE_WIDTH-100,          // 最大宽度
+    55             // 行高
+);
 
   ctx.restore();
 
