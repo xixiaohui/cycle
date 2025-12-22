@@ -6,6 +6,7 @@ import {
   CardMedia,
   Container,
   Grid,
+  Link,
   Typography,
   useMediaQuery,
   useTheme,
@@ -71,7 +72,7 @@ function Title() {
   );
 }
 
-// 内容 在移动端隐藏
+
 function Content() {
   return (
     <>
@@ -175,7 +176,19 @@ function Content() {
             </Grid>
           </Grid>
         </Box>
+        <Box sx={{
+          my:1,
+        }}>
+            <Link href="/join">
+              <Typography variant="h2" gutterBottom>
+                怎样加入我们？
+              </Typography>
+            </Link>
+        </Box>
+
       </Box>
+
+
 
       <div className="block w-full sm:hidden ">
         <CycleCard single={true}></CycleCard>
