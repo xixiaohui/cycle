@@ -226,7 +226,7 @@ function HeroSection(){
                 </i>
               </p>
             </div>
-            <p className="text-lg md:text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed whitespace-pre-line">
               {CYCLE_TEXT[0]}
             </p>
 
