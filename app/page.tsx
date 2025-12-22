@@ -176,16 +176,6 @@ function Content() {
             </Grid>
           </Grid>
         </Box>
-        <Box sx={{
-          my:1,
-        }}>
-            <Link href="/join">
-              <Typography variant="h2" gutterBottom>
-                加入我们
-              </Typography>
-            </Link>
-        </Box>
-
       </Box>
 
 
