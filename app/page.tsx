@@ -181,7 +181,7 @@ function Content() {
         }}>
             <Link href="/join">
               <Typography variant="h2" gutterBottom>
-                怎样加入我们？
+                加入我们
               </Typography>
             </Link>
         </Box>
