@@ -42,7 +42,7 @@ function Title() {
             <Typography variant={isSmall ? "h2" : "h1"}>
               ChaohuCycling Club
             </Typography>
-            {/* <p className="text-4xl color[#1c1f33] tracking-tighter text-balance">
+            {/* <p classNameName="text-4xl color[#1c1f33] tracking-tighter text-balance">
                 Chaohucycling Club
               </p> */}
           </Box>
@@ -197,14 +197,88 @@ function Content() {
   );
 }
 
+function HeroSection(){
+
+  return (
+    <>
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat will-change-transform"
+          style={{
+            backgroundImage: "url('https://picsum.photos/id/347/5000/3334')",
+          }}
+        ></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900/80 via-indigo-900/40 to-violet-900/40"></div>
+        <div className="absolute inset-0 bg-black/40"></div>
+
+        <div className="absolute top-20 left-10 w-4 h-4 bg-sky-400 rounded-full animate-float opacity-60"></div>
+        <div className="absolute top-40 right-20 w-6 h-6 bg-violet-500 rounded-full animate-float opacity-40"></div>
+        <div className="absolute bottom-32 left-20 w-3 h-3 bg-blue-400 rounded-full animate-float opacity-70"></div>
+        <div className="absolute bottom-20 right-32 w-5 h-5 bg-indigo-500 rounded-full animate-float opacity-50"></div>
+
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="mb-8">
+              <i
+                className="fas fa-music text-6xl md:text-8xl text-sky-400 mb-4 animate-pulse"
+                aria-hidden="true"
+              ></i>
+            </div>
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 leading-tight">
+              <span className="bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 bg-clip-text text-transparent animate-pulse-slow">
+                CHAOHU CYCLING CLUB
+              </span>
+            </h1>
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/20">
+              <p className="text-2xl md:text-3xl text-gray-100 mb-4 font-semibold">
+                <i className="fas fa-calendar-alt mr-3 text-sky-400">
+                  环巢湖骑行俱乐部
+                </i>
+              </p>
+            </div>
+            <p className="text-lg md:text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
+              {CYCLE_TEXT[0]}
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-sky-500/30 flex items-center justify-center">
+                <a href="/join">
+                  <i className="fas fa-ticket-alt mr-3"></i>加入我们
+                </a>
+              </button>
+              <a
+                href="/next"
+                className="border-2 border-sky-500 text-sky-400 hover:bg-sky-500 hover:text-white px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center"
+              >
+                <i className="fas fa-list mr-3"></i>下次骑行
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce"
+          aria-hidden="true"
+        >
+          <i className="fas fa-chevron-down text-2xl text-white/60"></i>
+        </div>
+      </section>
+    </>
+  );
+}
+
 export default function Home() {
   return (
-    <Container maxWidth="lg">
-      <Grid container spacing={1} sx={{ mb: 1 }}>
-        <Title></Title>
-        <Content></Content>
-      </Grid>
-      <Footer></Footer>
-    </Container>
+    <>
+      <HeroSection></HeroSection>
+
+      <Container maxWidth="lg">
+        <Grid container spacing={1} sx={{ my: 7 }}>
+          {/* <Title></Title> */}
+          <Content></Content>
+        </Grid>
+        <Footer></Footer>
+      </Container>
+    </>
   );
 }

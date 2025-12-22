@@ -6,7 +6,7 @@ function Join(){
   return (
   <>
     <Typography variant="h1" gutterBottom>
-      环巢湖骑行次数累积次数达50次以上者,可以申请加入
+      环巢湖骑行累积次数达50次以上
     </Typography>
   </>
   );
