@@ -30,9 +30,7 @@ export const CYCLE_TEXT: string[] = [
 
 export const SHARE_IAMGE_WIDTH = 1280;
 export const SHARE_IAMGE_HEIGHT = 1707;
-const N_W = 653;
-const N_W_T = 250;
-const N_W_D = 403;
+
 
 export const formatDateSmart = (dateString: string) => {
   if (!dateString) return "";
@@ -73,27 +71,6 @@ export const formatDayjs = (str: string) => {
   // console.log(formatted);
   return formatted;
 };
-
-// export type RidingPlan = {
-//   id: string;
-//   title: string;
-//   description?: string | null;
-
-//   start_time: string;  // Supabase timestamptz -> string
-//   end_time?: string | null;
-
-//   location?: string | null;
-//   latitude?: number | null;
-//   longitude?: number | null;
-
-//   distance_km?: number | null;
-//   difficulty?: "简单" | "普通" | "困难" | string;
-
-//   cover_url?: string | null;
-
-//   created_at: string;
-//   user_id: string;
-// };
 
 // Google Polyline 解码函数
 function decodePolyline(str: string): [number, number][] {
@@ -803,4 +780,28 @@ export function drawWrappedText(
   if (line) {
     ctx.fillText(line, x, y);
   }
+}
+
+
+export async function loadGPX(path: string) {
+  const res = await fetch(`/api/gpx?path=${encodeURIComponent(path)}`);
+  if (!res.ok) throw new Error("Failed to get signed url");
+
+  const { url } = await res.json();
+
+  const gpxRes = await fetch(url);
+  if (!gpxRes.ok) throw new Error("Failed to fetch gpx");
+
+  return await gpxRes.text();
+}
+
+export function parseGPX(gpxText: string) {
+  const parser = new DOMParser();
+  const xml = parser.parseFromString(gpxText, "application/xml");
+
+  return Array.from(xml.getElementsByTagName("trkpt")).map(pt => ({
+    lat: parseFloat(pt.getAttribute("lat")!),
+    lon: parseFloat(pt.getAttribute("lon")!),
+    ele: pt.querySelector("ele")?.textContent,
+  }));
 }

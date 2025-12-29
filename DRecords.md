@@ -35,6 +35,10 @@ create table if not exists riding_plans (
   comments_count int default 0,
   is_public boolean default true,
 
+  --新增
+  points_count int,
+  decrease int,
+
   created_at timestamptz default now()
 );
 

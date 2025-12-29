@@ -5,7 +5,7 @@ import { Container, Grid, Typography } from "@mui/material";
 function Join(){
   return (
   <>
-    <Typography variant="h1" gutterBottom>
+    <Typography variant="h2" gutterBottom>
       环巢湖骑行累积次数达50次以上
     </Typography>
   </>

@@ -65,16 +65,12 @@ export default function NextPage() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleAddRidingPlan = async () => {
-    // const user = (await supabase.auth.getUser()).data.user;
-    // if (!user) {
-    //   alert("请先登录");
-    //   return;
-    // }
+    
     const random_img_id = Math.floor(Math.random() * 201) + 100;
     const newPlan = {
       title: `新的骑行记录 ${random_img_id}`,
       description: "轻松骑行，呼吸新鲜空气",
-      start_time: new Date().toISOString(),
+      start_time: null,
       end_time: null,
       start_location: null,
       end_location: null,
@@ -96,6 +92,7 @@ export default function NextPage() {
       calories: 100,
       tss: 70,
       likes: 0,
+      created_at:new Date().toISOString(),
     };
 
     const { data, error } = await supabase
@@ -231,7 +228,7 @@ export default function NextPage() {
             }}
           >
             <Typography variant="h1" gutterBottom>
-              Cycling record
+              Cycling records
             </Typography>
             <Box
               sx={{
