@@ -22,7 +22,6 @@ import {
   renderRouteMapOptimized,
   SHARE_IAMGE_HEIGHT,
   SHARE_IAMGE_WIDTH,
-  textColor,
 } from "@/lib/util";
 import { RidingPlanPro } from "@/types/ridingPlan";
 import { Close, Download } from "@mui/icons-material";
@@ -910,90 +909,6 @@ function drawWatermarkBar(
   ctx.textBaseline = "middle";
 
   ctx.fillText(text, width / 2, height - barHeight / 2 + paddingBottom / 2);
-
-  ctx.restore();
-}
-
-type RenderOptionsNew = {
-  width?: number;
-  height?: number;
-  theme?: string;
-  showQr?: boolean;
-  showLogo?: boolean;
-  showAvatar?: boolean;
-  bottomGradient?: boolean;
-};
-
-function drawPosterText(
-  ctx: CanvasRenderingContext2D,
-  rp: RidingPlanPro,
-  width: number,
-  height: number,
-  opts: RenderOptionsNew = {}
-) {
-  const theme = themes[opts.theme || "default"] || themes.default;
-  ctx.save();
-
-  // TOP TITLE AREA
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-
-  // Title background mask for readability
-  if (opts.bottomGradient !== undefined && opts.bottomGradient) {
-    // If they asked bottomGradient we will draw bottom later. Here draw subtle top mask:
-    ctx.fillStyle = theme.maskColor || "rgba(0,0,0,0.18)";
-    ctx.fillRect(0, 0, width, 320);
-  }
-
-  ctx.fillStyle = theme.titleColor;
-  ctx.font = "bold 72px Inter, sans-serif";
-  const title = rp.title || "骑行记录";
-  // handle long title -> wrap into max width
-  const maxTitleW = width * 0.9;
-  const titleLines = wrapText(ctx, title, maxTitleW);
-  const titleYStart = 140;
-  const lineH = textHeightFromFont(ctx.font) + 8;
-  for (let i = 0; i < titleLines.length; i++) {
-    ctx.fillText(titleLines[i], width / 2, titleYStart + i * lineH);
-  }
-
-  // subtitle
-  if (rp.description) {
-    ctx.font = "36px Inter, sans-serif";
-    ctx.fillStyle = theme.subtitleColor;
-    ctx.fillText(
-      rp.description,
-      width / 2,
-      titleYStart + titleLines.length * lineH + 46
-    );
-  }
-
-  // BOTTOM INFO AREA
-  const baseY = height - 260;
-  const leftX = width * 0.08;
-  const rightX = width * 0.92;
-  ctx.font = "36px Inter, sans-serif";
-  ctx.fillStyle = theme.infoColor;
-  ctx.textAlign = "left";
-  ctx.fillText(`距离：${rp.distance_km ?? ""} km`, leftX, baseY);
-  ctx.textAlign = "right";
-  ctx.fillText(`用时：${rp.duration_min ?? ""} 分钟`, rightX, baseY);
-
-  ctx.textAlign = "left";
-  ctx.fillText(
-    `平均速度：${Math.round(rp.distance_km / rp.duration_min / 60) ?? ""} km/h`,
-    leftX,
-    baseY + 64
-  );
-  ctx.textAlign = "right";
-  ctx.fillText(`日期：${rp.start_time ?? ""}`, rightX, baseY + 64);
-
-  // watermark small
-  ctx.font = "20px Inter, sans-serif";
-  ctx.textAlign = "center";
-  ctx.globalAlpha = 0.8;
-  ctx.fillStyle = theme.subtitleColor;
-  ctx.fillText("Powered by chaohucyclingclub", width / 2, height - 36);
 
   ctx.restore();
 }
