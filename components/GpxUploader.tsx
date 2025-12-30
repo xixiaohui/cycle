@@ -24,7 +24,7 @@ function haversine(
 
 // Google encoded polyline algorithm implementation
 // points: Array of [lat, lng]
-function encodePolyline(points: Array<[number, number]>) {
+export function encodePolyline(points: Array<[number, number]>) {
   let lastLat = 0;
   let lastLng = 0;
   let result = "";
@@ -64,14 +64,14 @@ type GpxMetadata = {
   routeType?: number;
 };
 
-type GpxResult = {
+export type GpxResult = {
   points: Array<[number, number]>;
   times: string[];
   metadata: GpxMetadata;
 };
 
 // Parse GPX string into points and times
-function parseGpx(gpxText: string): GpxResult {
+export function parseGpx(gpxText: string): GpxResult {
   const parser = new DOMParser();
   const doc = parser.parseFromString(gpxText, "application/xml");
 
@@ -149,7 +149,7 @@ function extractExtensions(doc: Document): GpxMetadata {
   };
 }
 
-function calculateEndTime(startTime: string, totalTimeSec: number): string {
+export function calculateEndTime(startTime: string, totalTimeSec: number): string {
   const startDate = new Date(startTime);
   const endDate = new Date(startDate.getTime() + totalTimeSec * 1000);
   return endDate.toISOString();
@@ -174,34 +174,9 @@ export default function GpxUploader({ planId, onDone }: Props) {
       const text = await file.text();
       const { points, times, metadata } = parseGpx(text);
 
-      // console.log(points)
-      // console.log(times)
-      // console.log(metadata)
-      // return
+
       if (!points || points.length < 2)
         throw new Error("No track points found or too few points.");
-
-      // compute distance
-      // let total = 0;
-      // for (let i = 1; i < points.length; i++) {
-      //   total += haversine(points[i - 1], points[i]);
-      // }
-
-      // compute start/end/duration if times available
-      // let startTime: string | null = null;
-      // let endTime: string | null = null;
-      // let durationS: number | null = null;
-      // if (times && times.length) {
-      //   // some GPX have times per point, else first/last
-      //   const parseISO = (s: string) => new Date(s);
-      //   const t0 = parseISO(times[0]);
-      //   const t1 = parseISO(times[times.length - 1] || times[0]);
-      //   if (!isNaN(t0.getTime()) && !isNaN(t1.getTime())) {
-      //     startTime = t0.toISOString();
-      //     endTime = t1.toISOString();
-      //     durationS = Math.round((t1.getTime() - t0.getTime()) / 1000);
-      //   }
-      // }
 
       // encode polyline
       const encoded = encodePolyline(points);

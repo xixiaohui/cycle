@@ -795,13 +795,13 @@ export async function loadGPX(path: string) {
   return await gpxRes.text();
 }
 
-export function parseGPX(gpxText: string) {
-  const parser = new DOMParser();
-  const xml = parser.parseFromString(gpxText, "application/xml");
+// export function parseGPX(gpxText: string) {
+//   const parser = new DOMParser();
+//   const xml = parser.parseFromString(gpxText, "application/xml");
 
-  return Array.from(xml.getElementsByTagName("trkpt")).map(pt => ({
-    lat: parseFloat(pt.getAttribute("lat")!),
-    lon: parseFloat(pt.getAttribute("lon")!),
-    ele: pt.querySelector("ele")?.textContent,
-  }));
-}
+//   return Array.from(xml.getElementsByTagName("trkpt")).map(pt => ({
+//     lat: parseFloat(pt.getAttribute("lat")!),
+//     lon: parseFloat(pt.getAttribute("lon")!),
+//     ele: pt.querySelector("ele")?.textContent,
+//   }));
+// }

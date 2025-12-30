@@ -227,7 +227,7 @@ export default function Footer() {
             <IconButton
               color="inherit"
               size="small"
-              href="https://chaohucyclingclub.com"
+              href="https://chaohucyclingclub.com/gpxes"
               aria-label="LinkedIn"
               sx={{ alignSelf: 'center' }}
             >
