@@ -89,6 +89,15 @@ export const themes: Record<string, Theme> = {
     maskColor: '0.18',
     accent: '#2aa876',
   },
+  pink: {
+    name: 'fresh_pink',
+    bgColor: '#2C2C2C',
+    titleColor: '#FF69B4',
+    subtitleColor: '#FF69B4',
+    infoColor: '#FF69B4',
+    maskColor: '0.18',
+    accent: '#2aa876',
+  },
 };
 
 // --- Utilities ---

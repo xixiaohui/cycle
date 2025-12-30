@@ -27,6 +27,9 @@ export const CYCLE_TEXT: string[] = [
   定居点:	合肥市、长临河镇、严店乡、三河镇、盛桥镇、同大镇、白山镇、巢湖市、中庙街道、黄麓镇、烔炀镇、中垾镇、散兵镇、槐林镇`,
 ];
 
+export const trackColor = "#FF69B4";
+export const trackColorLinear = "#FF69B4";
+
 
 export const SHARE_IAMGE_WIDTH = 1280;
 export const SHARE_IAMGE_HEIGHT = 1707;
@@ -651,8 +654,8 @@ export async function renderRouteMapOptimized({
     box.x + box.w,
     box.y + box.h
   );
-  grad.addColorStop(0, "#00aaff");
-  grad.addColorStop(1, "#ff5e5e");
+  grad.addColorStop(0, trackColor);
+  grad.addColorStop(1, trackColorLinear);
   ctx.strokeStyle = grad;
 
   ctx.beginPath();

@@ -22,12 +22,12 @@ import {
   renderRouteMapOptimized,
   SHARE_IAMGE_HEIGHT,
   SHARE_IAMGE_WIDTH,
+  textColor,
 } from "@/lib/util";
 import { RidingPlanPro } from "@/types/ridingPlan";
 import { Close, Download } from "@mui/icons-material";
 import { textHeightFromFont, themes, wrapText } from "@/lib/poster";
 import dayjs from "dayjs";
-
 
 // ---------------------------
 // Props
@@ -67,7 +67,6 @@ export default function SharePoster({
       const ctx = canvas.getContext("2d")!;
       const dpr = window.devicePixelRatio || 2;
       const width = SHARE_IAMGE_WIDTH;
-      // const height = 1920;
       const height = SHARE_IAMGE_HEIGHT;
 
       canvas.width = width * dpr;
@@ -75,10 +74,6 @@ export default function SharePoster({
       canvas.style.width = width + "px";
       canvas.style.height = height + "px";
       ctx.scale(dpr, dpr);
-
-      // await renderPosterMain(
-      //   ctx,{title,distance,cover,encodedPolyline,zoom},{width,height,onProgress:((p)=>setProgress(p))}
-      // )
 
       await renderPoster(
         ctx,
@@ -565,7 +560,7 @@ interface PosterLayoutOptions {
   distanceFont?: string;
   watermarkFont?: string;
   watermarkText?: string;
-  describtionFont?:string;
+  describtionFont?: string;
   onProgress?: (p: number) => void; // 新增进度回调
 }
 
@@ -671,8 +666,10 @@ export async function renderPoster(
 
   // 4. 标题文字
   ctx.save();
+
   //sport_blue fresh_green dark_gold default
-  const current_theme = themes["default"];
+  const current_theme = themes["pink"];
+
   let start_height = 1054;
   let start_width = 64;
   ctx.fillStyle = current_theme.bgColor;
@@ -680,11 +677,12 @@ export async function renderPoster(
   ctx.fillRect(0, start_height, width, height - start_height - 100);
   ctx.globalAlpha = 1.0; // 恢复
 
-  start_height +=100;
+  start_height += 100;
   ctx.fillStyle = current_theme.titleColor;
   ctx.font = titleFont;
   ctx.textAlign = "left"; // left/center/right
   ctx.textBaseline = "top";
+
   ctx.fillText(`${data.distance}`, start_width, start_height);
   const metrics = ctx.measureText(data.distance);
   const actualHeight =
@@ -720,15 +718,11 @@ export async function renderPoster(
     start_width,
     start_height + actualHeight - 7
   );
-  
+
   ctx.font = watermarkFont;
   ctx.textAlign = "left"; // left/center/right
   ctx.textBaseline = "middle";
-  ctx.fillText(
-    "h",
-    start_width + hour_width + 5,
-    start_height + actualHeight
-  );
+  ctx.fillText("h", start_width + hour_width + 5, start_height + actualHeight);
 
   ctx.font = distanceFont;
   ctx.textAlign = "left"; // left/center/right
@@ -738,7 +732,6 @@ export async function renderPoster(
     start_width + hour_width + character_width + 5,
     start_height + actualHeight - 7
   );
-
 
   ctx.font = watermarkFont;
   ctx.textAlign = "left"; // left/center/right
@@ -760,19 +753,16 @@ export async function renderPoster(
 
   start_width = start_width - width / 2;
   ctx.font = describtionFont;
-  // ctx.fillText(
-  //   data.ridingPlan?.description||"",
-  //   start_width,
-  //   start_height + 303
-  // );
 
-  drawWrappedText(ctx,
+  ctx.fillStyle = current_theme.subtitleColor;
+  drawWrappedText(
+    ctx,
     data.ridingPlan?.description || "",
     start_width,
     start_height + 303,
-    SHARE_IAMGE_WIDTH-100,          // 最大宽度
-    55             // 行高
-);
+    SHARE_IAMGE_WIDTH - 100, // 最大宽度
+    55 // 行高
+  );
 
   ctx.restore();
 

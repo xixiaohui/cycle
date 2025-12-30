@@ -258,7 +258,7 @@ export default function CycleDetailPage({ plan }: Props) {
         <div className="m-2 grid md:grid-cols-2">
           <div className="md:col-start-2">
             <Box className="space-y-2">
-              <Typography variant="body1">{currentPlan.description}</Typography>
+              <Typography variant="subtitle1" gutterBottom>{currentPlan.description}</Typography>
               <div className="grid grid-cols-2 gap-4">
                 <div className="...">
                   <Typography variant="body2">
