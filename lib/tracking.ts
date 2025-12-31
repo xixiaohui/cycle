@@ -12,7 +12,6 @@ export function startTracking(trackId: string) {
     return;
   }
 
-
   watchId = navigator.geolocation.watchPosition(
     async (pos) => {
       console.log("📍 定位成功", pos.coords);

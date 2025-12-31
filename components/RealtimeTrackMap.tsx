@@ -16,6 +16,7 @@ type TrackPoint = {
 export default function RealtimeTrackMap({ trackId }: { trackId: string }) {
   const mapRef = useRef<L.Map | null>(null);
   const polylineRef = useRef<L.Polyline | null>(null);
+  const pointsLayerRef = useRef<L.LayerGroup | null>(null); // 每个轨迹点的图层
   const [points, setPoints] = useState<TrackPoint[]>([]);
 
   /** 初始化地图 */
@@ -32,11 +33,16 @@ export default function RealtimeTrackMap({ trackId }: { trackId: string }) {
 
     const polyline = L.polyline([], {
       color: "#ff4d4f",
-      weight: 4,
+      weight: 8, // 粗一点
+      opacity: 0.8,
     }).addTo(map);
+
+    // 图层存储轨迹点
+    const pointsLayer = L.layerGroup().addTo(map);
 
     mapRef.current = map;
     polylineRef.current = polyline;
+    pointsLayerRef.current = pointsLayer;
   }, []);
 
   /** 加载已有轨迹点 */
@@ -48,14 +54,33 @@ export default function RealtimeTrackMap({ trackId }: { trackId: string }) {
         .eq("track_id", trackId)
         .order("created_at", { ascending: true });
 
-      if (!data) return;
+      if (
+        !data ||
+        !mapRef.current ||
+        !polylineRef.current ||
+        !pointsLayerRef.current
+      )
+        return;
 
       setPoints(data);
 
       const latlngs = data.map(
         (p) => [p.latitude, p.longitude] as [number, number]
       );
-      polylineRef.current?.setLatLngs(latlngs);
+      polylineRef.current.setLatLngs(latlngs);
+
+      // 每个点画一个圆圈 marker
+      data.forEach((p) => {
+        const circle = L.circleMarker([p.latitude, p.longitude], {
+          radius: 6, // 半径大一点
+          color: "#1890ff",
+          fillColor: "#1890ff",
+          fillOpacity: 0.9,
+        }).addTo(pointsLayerRef.current!);
+      });
+
+      // 地图中心移动到最后一个点
+      mapRef.current.setView(latlngs[latlngs.length - 1], 15);
     };
 
     load();
@@ -63,6 +88,9 @@ export default function RealtimeTrackMap({ trackId }: { trackId: string }) {
 
   /** Realtime 订阅 */
   useEffect(() => {
+    if (!mapRef.current || !polylineRef.current || !pointsLayerRef.current)
+      return;
+
     const channel = supabase
       .channel("track-points")
       .on(
@@ -78,7 +106,24 @@ export default function RealtimeTrackMap({ trackId }: { trackId: string }) {
 
           setPoints((prev) => {
             const next = [...prev, p];
+
+            // 更新轨迹线
             polylineRef.current?.addLatLng([p.latitude, p.longitude]);
+
+            // 添加轨迹点 marker
+            L.circleMarker([p.latitude, p.longitude], {
+              radius: 6,
+              color: "#1890ff",
+              fillColor: "#1890ff",
+              fillOpacity: 0.9,
+            }).addTo(pointsLayerRef.current!);
+
+            // 地图跟随最新点
+            mapRef.current?.setView(
+              [p.latitude, p.longitude],
+              mapRef.current.getZoom()
+            );
+
             return next;
           });
         }
