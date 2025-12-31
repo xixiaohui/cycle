@@ -76,3 +76,4 @@ create table if not exists route_segments (
 ### 把现有的 CycleCard / riding_plans 系统扩展为一个“社区 + 路线市场 + 训练分析 + 实时协作”的专业级骑行平台，
 ### 支持高并发 GPX/实时轨迹、段（segment）竞速、社交、推荐与训练负荷分析，并能水平扩展到数十万活跃用户。
 
+

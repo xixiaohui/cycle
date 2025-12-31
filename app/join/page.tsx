@@ -1,14 +1,33 @@
 import Footer from "@/components/Footer";
-import { Container, Grid, Typography } from "@mui/material";
-
+import { Box, Button, Container, Grid, Link, Typography } from "@mui/material";
+import { v4 as uuidv4 } from "uuid";
 
 function Join(){
   return (
-  <>
+  <Box sx={{
+    display:'flex',
+    flexDirection:"column"
+  }}>
     <Typography variant="h2" gutterBottom>
       环巢湖骑行累积次数达50次以上
     </Typography>
-  </>
+  </Box>
+  );
+}
+
+
+function StartCycling(){
+
+  const trackId = uuidv4();
+
+  return(
+    <Box>
+      <Link href={`/tracks/${trackId}`}>
+        <Button>
+          <Typography variant="subtitle1" gutterBottom>骑行直播</Typography>
+        </Button>
+      </Link>
+    </Box>
   );
 }
 
@@ -18,6 +37,8 @@ export default function JoinPage() {
       <Grid container spacing={1} sx={{ mb: 1 }}>
         <Join></Join>
       </Grid>
+
+      <StartCycling></StartCycling>
       <Footer></Footer>
     </Container>
   );
