@@ -9,6 +9,7 @@
 🔴 支持 Supabase Realtime
 🚴 支持多条轨迹 / 多用户 / 多次骑行
 
+### "第一步"
 create table public.track_points (
   id bigint generated always as identity primary key,
 
@@ -30,6 +31,7 @@ create table public.track_points (
   created_at timestamptz not null default now()
 );
 
+### "第二步"
 推荐索引（非常重要）
 create index track_points_track_id_idx
 on public.track_points (track_id, created_at);
@@ -37,7 +39,7 @@ on public.track_points (track_id, created_at);
 create index track_points_created_at_idx
 on public.track_points (created_at);
 
-
+### "第三步"
 确保 RLS 正确  （简单开发阶段（先跑起来））
 alter table public.track_points enable row level security;
 
@@ -50,3 +52,6 @@ create policy "public select"
 on public.track_points
 for select
 using (true);
+
+
+### "b9ee0231-123f-4b8a-b223-ba9822eb6398"

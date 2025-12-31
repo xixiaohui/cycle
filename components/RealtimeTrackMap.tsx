@@ -7,16 +7,16 @@ import { supabase } from "@/lib/supabaseClient";
 
 type TrackPoint = {
   id: number;
-  latitude: number;
-  longitude: number;
-  elevation?: number;
+  latitude: number | null;
+  longitude: number | null;
+  elevation?: number | null;
   created_at: string;
 };
 
 export default function RealtimeTrackMap({ trackId }: { trackId: string }) {
   const mapRef = useRef<L.Map | null>(null);
   const polylineRef = useRef<L.Polyline | null>(null);
-  const pointsLayerRef = useRef<L.LayerGroup | null>(null); // 每个轨迹点的图层
+  const pointsLayerRef = useRef<L.LayerGroup | null>(null);
   const [points, setPoints] = useState<TrackPoint[]>([]);
 
   /** 初始化地图 */
@@ -25,7 +25,7 @@ export default function RealtimeTrackMap({ trackId }: { trackId: string }) {
 
     const map = L.map("map", {
       zoomControl: true,
-    }).setView([31.86, 117.27], 13); // 初始点可随意
+    }).setView([31.86, 117.27], 13);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "&copy; OpenStreetMap",
@@ -33,11 +33,10 @@ export default function RealtimeTrackMap({ trackId }: { trackId: string }) {
 
     const polyline = L.polyline([], {
       color: "#ff4d4f",
-      weight: 8, // 粗一点
+      weight: 8,
       opacity: 0.8,
     }).addTo(map);
 
-    // 图层存储轨迹点
     const pointsLayer = L.layerGroup().addTo(map);
 
     mapRef.current = map;
@@ -48,38 +47,34 @@ export default function RealtimeTrackMap({ trackId }: { trackId: string }) {
   /** 加载已有轨迹点 */
   useEffect(() => {
     const load = async () => {
+      if (!mapRef.current || !polylineRef.current || !pointsLayerRef.current) return;
+
       const { data } = await supabase
         .from("track_points")
         .select("*")
         .eq("track_id", trackId)
         .order("created_at", { ascending: true });
 
-      if (
-        !data ||
-        !mapRef.current ||
-        !polylineRef.current ||
-        !pointsLayerRef.current
-      )
-        return;
+      if (!data || data.length === 0) return;
 
-      setPoints(data);
+      // 过滤掉无效坐标
+      const validData = data.filter((p) => p.latitude != null && p.longitude != null);
+      if (validData.length === 0) return;
 
-      const latlngs = data.map(
-        (p) => [p.latitude, p.longitude] as [number, number]
-      );
+      setPoints(validData);
+
+      const latlngs = validData.map((p) => [p.latitude!, p.longitude!] as [number, number]);
       polylineRef.current.setLatLngs(latlngs);
 
-      // 每个点画一个圆圈 marker
-      data.forEach((p) => {
-        const circle = L.circleMarker([p.latitude, p.longitude], {
-          radius: 6, // 半径大一点
+      validData.forEach((p) => {
+        L.circleMarker([p.latitude!, p.longitude!], {
+          radius: 6,
           color: "#1890ff",
           fillColor: "#1890ff",
           fillOpacity: 0.9,
         }).addTo(pointsLayerRef.current!);
       });
 
-      // 地图中心移动到最后一个点
       mapRef.current.setView(latlngs[latlngs.length - 1], 15);
     };
 
@@ -88,8 +83,7 @@ export default function RealtimeTrackMap({ trackId }: { trackId: string }) {
 
   /** Realtime 订阅 */
   useEffect(() => {
-    if (!mapRef.current || !polylineRef.current || !pointsLayerRef.current)
-      return;
+    if (!mapRef.current || !polylineRef.current || !pointsLayerRef.current) return;
 
     const channel = supabase
       .channel("track-points")
@@ -104,14 +98,16 @@ export default function RealtimeTrackMap({ trackId }: { trackId: string }) {
         (payload) => {
           const p = payload.new as TrackPoint;
 
+          if (p.latitude == null || p.longitude == null) return;
+
           setPoints((prev) => {
             const next = [...prev, p];
 
             // 更新轨迹线
-            polylineRef.current?.addLatLng([p.latitude, p.longitude]);
+            polylineRef.current?.addLatLng([p.latitude!, p.longitude!]);
 
-            // 添加轨迹点 marker
-            L.circleMarker([p.latitude, p.longitude], {
+            // 绘制圆点
+            L.circleMarker([p.latitude!, p.longitude!], {
               radius: 6,
               color: "#1890ff",
               fillColor: "#1890ff",
@@ -119,10 +115,7 @@ export default function RealtimeTrackMap({ trackId }: { trackId: string }) {
             }).addTo(pointsLayerRef.current!);
 
             // 地图跟随最新点
-            mapRef.current?.setView(
-              [p.latitude, p.longitude],
-              mapRef.current.getZoom()
-            );
+            mapRef.current?.setView([p.latitude!, p.longitude!], mapRef.current.getZoom());
 
             return next;
           });
