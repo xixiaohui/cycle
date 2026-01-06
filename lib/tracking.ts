@@ -39,8 +39,8 @@ export function startTracking(trackId: string) {
     },
     (err) => console.error("定位失败", err),
     {
-      enableHighAccuracy: true,
-      maximumAge: 1000,
+      enableHighAccuracy: false,
+      maximumAge: 10000,
     }
   );
 }
