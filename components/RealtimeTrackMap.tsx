@@ -33,8 +33,8 @@ export default function RealtimeTrackMap({ trackId }: { trackId: string }) {
 
     const polyline = L.polyline([], {
       color: "#ff4d4f",
-      weight: 8,
-      opacity: 0.8,
+      weight: 7,
+      opacity: 0.9,
     }).addTo(map);
 
     const pointsLayer = L.layerGroup().addTo(map);
@@ -68,9 +68,9 @@ export default function RealtimeTrackMap({ trackId }: { trackId: string }) {
 
       validData.forEach((p) => {
         L.circleMarker([p.latitude!, p.longitude!], {
-          radius: 6,
+          radius: 1,
           color: "#1890ff",
-          fillColor: "#1890ff",
+          fillColor: "#ff4d4f",
           fillOpacity: 0.9,
         }).addTo(pointsLayerRef.current!);
       });
@@ -108,9 +108,9 @@ export default function RealtimeTrackMap({ trackId }: { trackId: string }) {
 
             // 绘制圆点
             L.circleMarker([p.latitude!, p.longitude!], {
-              radius: 6,
+              radius: 1,
               color: "#1890ff",
-              fillColor: "#1890ff",
+              fillColor: "#ff4d4f",
               fillOpacity: 0.9,
             }).addTo(pointsLayerRef.current!);
 
