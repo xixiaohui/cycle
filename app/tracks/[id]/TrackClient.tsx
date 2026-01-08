@@ -10,13 +10,13 @@ const RealtimeTrackMap = dynamic(
 );
 
 export default function TrackClient({ trackId }: { trackId: string }) {
-  const [recording, setRecording] = useState(false);
+  // const [recording, setRecording] = useState(false);
 
   return (
     <>
       <RealtimeTrackMap trackId={trackId} />
 
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex gap-4 z-1000">
+      {/* <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex gap-4 z-1000">
         {!recording ? (
           <button
             className="px-6 py-3 bg-red-500 text-white rounded-full shadow"
@@ -39,7 +39,7 @@ export default function TrackClient({ trackId }: { trackId: string }) {
             结束记录
           </button>
         )}
-      </div>
+      </div> */}
     </>
   );
 }
