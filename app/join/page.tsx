@@ -20,7 +20,7 @@ function Join(){
     flexDirection:"column"
   }}>
     <Typography variant="h2" gutterBottom>
-      环巢湖骑行累积次数达50次以上
+      正在准备中
     </Typography>
   </Box>
   );
