@@ -1,3 +1,5 @@
+"use client"
+
 import Footer from "@/components/Footer";
 import { Box, Button, Container, Grid, Link, Typography } from "@mui/material";
 import { v4 as uuidv4 } from "uuid";
@@ -12,6 +14,7 @@ import {
 import DirectionsBikeIcon from "@mui/icons-material/DirectionsBike"
 
 import { supabase } from "@/lib/supabaseClient";
+import { useEffect, useState } from "react";
 
 function Join(){
   return (
@@ -20,33 +23,47 @@ function Join(){
     flexDirection:"column"
   }}>
     <Typography variant="h2" gutterBottom>
-      正在准备中
+      正在开发...
     </Typography>
   </Box>
   );
 }
 
 
-async function StartCycling(){
+function StartCycling(){
+  const [tracks, setTracks] = useState<[string, string][]>([])
+  const [error, setError] = useState<string | null>(null)
 
-  const { data, error } = await supabase
-    .from("track_points")
-    .select("track_id, created_at")
-    .order("created_at", { ascending: false })
 
-  if (error) {
-    return <div>加载失败：{error.message}</div>
-  }
+  useEffect(() => {
 
-  // 去重 + 按最近时间排序
-  const map = new Map<string, string>()
-  data.forEach(row => {
-    if (!map.has(row.track_id)) {
-      map.set(row.track_id, row.created_at)
+    const fetchTracks = async () => {
+      const { data, error } = await supabase
+        .from("track_points")
+        .select("track_id, created_at")
+        .order("created_at", { ascending: false })
+
+      if (error) {
+        setError(error.message)
+        return
+      }
+
+      // 去重：只保留每个 track_id 最新时间
+      const map = new Map<string, string>()
+      data.forEach(row => {
+        if (!map.has(row.track_id)) {
+          map.set(row.track_id, row.created_at)
+        }
+      })
+
+      setTracks(Array.from(map.entries()))
     }
-  })
 
-  const tracks = Array.from(map.entries())
+    fetchTracks()
+
+  }, [])
+
+  if (error) return <div>加载失败：{error}</div>
 
   return(
     <Box>
