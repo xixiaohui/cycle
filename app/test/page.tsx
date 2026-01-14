@@ -9,8 +9,6 @@ export default function TestPage() {
         <Typography gutterBottom variant="h1">
           环巢湖骑行Club
         </Typography>
-
-        
       </Box>
 
       <TrainingZonesTable></TrainingZonesTable>

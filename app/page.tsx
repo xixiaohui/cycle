@@ -264,7 +264,6 @@ export default function Home() {
 
       <Container maxWidth="lg">
         <Grid container spacing={1} sx={{ my: 7 }}>
-          {/* <Title></Title> */}
           <Content></Content>
         </Grid>
         <Footer></Footer>
