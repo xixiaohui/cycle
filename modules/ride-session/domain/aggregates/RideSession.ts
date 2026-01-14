@@ -67,4 +67,8 @@ export class RideSession {
     this.domainEvents.length = 0 // 清空已取出的事件
     return events
   }
+
+  public isRiding():boolean{
+    return (this.status == SessionStatus.RIDING)
+  }
 }
