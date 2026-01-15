@@ -15,4 +15,8 @@ export class TrackPointId {
   equals(other: TrackPointId): boolean {
     return this.value === other.value
   }
+
+  static from(value: string) {
+    return new TrackPointId(value)
+  }
 }

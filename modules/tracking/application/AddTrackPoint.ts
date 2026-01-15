@@ -24,7 +24,7 @@ export class AddTrackPoint {
     if (!track) {
       track = new Track(input.trackId)
     }
-    
+
     const location = new Location(input.lat, input.lon, input.accuracy);
 
     const point = new TrackPoint(TrackPointId.new(),location, input.recordedAt);
@@ -36,7 +36,7 @@ export class AddTrackPoint {
     track.addPoint(point)
 
     await this.trackRepo.save(track)
-    
+
     // 暂时只 return
     return track;
   }

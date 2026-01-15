@@ -14,4 +14,8 @@ export class TrackId {
   equals(other: TrackId): boolean {
     return this.value === other.value
   }
+
+  static from(value: string) {
+    return new TrackId(value)
+  }
 }
