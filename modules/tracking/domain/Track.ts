@@ -1,7 +1,13 @@
 import { TrackId } from "./TrackId"
 import { TrackPoint } from "./TrackPoint"
 
+import { TrackPointAdded } from "./events/TrackPointAdded"
+import { DomainEvent } from "@/modules/shared/domain/DomainEvent"
+
 export class Track {
+  private domainEvents: DomainEvent[] = []
+
+
   private points: TrackPoint[] = []
 
   constructor(readonly id: TrackId) {}
@@ -14,6 +20,7 @@ export class Track {
     }
 
     this.points.push(point)
+    this.domainEvents.push(new TrackPointAdded(this.id, point))
   }
 
   getPoints(): readonly TrackPoint[] {
@@ -24,5 +31,11 @@ export class Track {
     return this.points.length
       ? this.points[this.points.length - 1]
       : null
+  }
+
+  pullDomainEvents(): DomainEvent[] {
+    const events = [...this.domainEvents]
+    this.domainEvents = []
+    return events
   }
 }

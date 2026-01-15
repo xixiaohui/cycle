@@ -7,11 +7,13 @@ import { TrackPoint } from "../domain/TrackPoint"
 
 import { RideSessionRepository } from "@/modules/ride-session/domain/RideSessionRepository"
 import { RideSessionId } from "@/modules/ride-session/domain/RideSessionId"
+import { EventBus } from "@/modules/shared/domain/EventBus"
 
 export class AddTrackPointToRideSession {
   constructor(
     private readonly trackRepo: TrackRepository,
-    private readonly rideSessionRepo: RideSessionRepository
+    private readonly rideSessionRepo: RideSessionRepository,
+    private readonly eventBus: EventBus
   ) {}
 
   async execute(input: {
@@ -56,5 +58,6 @@ export class AddTrackPointToRideSession {
 
     track.addPoint(point)
     await this.trackRepo.save(track)
+    await this.eventBus.publish(track.pullDomainEvents())
   }
 }

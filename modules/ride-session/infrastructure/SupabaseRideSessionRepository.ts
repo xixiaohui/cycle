@@ -12,7 +12,13 @@ export class SupabaseRideSessionRepository
 
     const { data, error } = await supabase
       .from("ride_sessions")
-      .select("*")
+      .select(`
+        *,
+        participants:ride_participants (
+          user_id,
+          track_id
+        )
+      `)
       .eq("id", id.toString())
       .single()
 

@@ -3,18 +3,28 @@ import { UserId } from "@/modules/sharing/identity/UserId"
 import { RideSession } from "../domain/RideSession"
 import { RideSessionId } from "../domain/RideSessionId"
 import { RideSessionStatus } from "../domain/RideSessionStatus"
+import { TrackId } from "@/modules/tracking/domain/TrackId"
 
 
 
 export class RideSessionMapper {
   static toDomain(raw: any): RideSession {
-    return new RideSession(
+    const session = new RideSession(
       RideSessionId.from(raw.id),
       UserId.from(raw.owner_id),
       RideSessionStatus.from(raw.status),
-      raw.startedAt ? new Date(raw.startedAt) : null,
-      raw.endedAt ? new Date(raw.endedAt) : null
+      raw.started_at ? new Date(raw.started_at) : null,
+      raw.ended_at ? new Date(raw.ended_at) : null
     )
+
+    raw.participants?.forEach((p: any) => {
+      session.join(
+        UserId.from(p.user_id),
+        TrackId.from(p.track_id)
+      )
+    })
+
+    return session
   }
 
   static toPersistence(session: RideSession) {
