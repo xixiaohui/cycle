@@ -12,8 +12,8 @@ export class RideSessionMapper {
       RideSessionId.from(raw.id),
       UserId.from(raw.owner_id),
       RideSessionStatus.from(raw.status),
-      raw.started_at ? new Date(raw.started_at) : null,
-      raw.ended_at ? new Date(raw.ended_at) : null
+      raw.startedAt ? new Date(raw.startedAt) : null,
+      raw.endedAt ? new Date(raw.endedAt) : null
     )
   }
 
@@ -22,8 +22,8 @@ export class RideSessionMapper {
       id: session.id.toString(),
       owner_id: session.ownerId.toString(),
       status: session.status.value,
-      started_at: session.started_at?.toISOString() ?? null,
-      ended_at: session.ended_at?.toISOString() ?? null
+      started_at: session.startedAt?.toISOString() ?? null,
+      ended_at: session.endedAt?.toISOString() ?? null
     }
   }
 }

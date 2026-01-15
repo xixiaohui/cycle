@@ -1,21 +1,17 @@
-// "use server"
+"use server"
 
-// import { SupabaseRideSessionRepository } from "@/modules/ride-session/domain/repositories/SupabaseRideSessionRepository"
-// import { RideSessionId } from "@/modules/sharing/identity/RideSessionId"
-// import { UserId } from "@/modules/sharing/identity/UserId"
+import { UserId } from "@/modules/sharing/identity/UserId"
+import { createRideSessionUseCases } from "./_deps"
+import { RideSessionId } from "@/modules/ride-session/domain/RideSessionId"
+// import { getCurrentUser } from "@/lib/auth"
 
 
-
-// export async function startRideSessionAction(sessionId: string) {
+export async function startRideSessionAction(id: string) {
 //   const user = await getCurrentUser()
 //   if (!user) throw new Error("Unauthorized")
+    const userId = UserId.from("")
 
-//   const useCase = new StartRideSession(
-//     new SupabaseRideSessionRepository()
-//   )
+  const { start } = createRideSessionUseCases()
+  await start.execute({ sessionId: RideSessionId.from(id) ,byUserId:userId})
+}
 
-//   await useCase.execute({
-//     sessionId: RideSessionId.from(sessionId),
-//     byUser: UserId.from(user.id)
-//   })
-// }

@@ -16,7 +16,7 @@ export class StartRideSession {
       throw new Error("RideSession not found")
     }
 
-    session.start(input.byUserId)
+    session.start()
 
     await this.repo.save(session)
   }

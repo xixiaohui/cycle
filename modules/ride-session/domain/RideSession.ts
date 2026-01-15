@@ -2,41 +2,52 @@ import { UserId } from "@/modules/sharing/identity/UserId"
 import { RideSessionId } from "./RideSessionId"
 import { RideSessionStatus } from "./RideSessionStatus"
 
-
 export class RideSession {
   constructor(
     readonly id: RideSessionId,
-    readonly ownerId: UserId, // 先用 string，后面再升级 UserId
-    public status: RideSessionStatus = RideSessionStatus.CREATED,
-    readonly started_at: Date | null,
-    readonly ended_at: Date | null
+    readonly ownerId: UserId,
+    private _status: RideSessionStatus,
+    private _startedAt: Date | null,
+    private _endedAt: Date | null
   ) {}
 
-  start(byUser: UserId) {
-    if (!byUser.equals(this.ownerId)) {
-      throw new Error("Only owner can start the ride");
-    }
-
-    if (this.status !== RideSessionStatus.CREATED) {
-      throw new Error("RideSession cannot be started");
-    }
-
-    this.status = RideSessionStatus.RIDING;
+  get status() {
+    return this._status
   }
 
-  end(byUser: UserId) {
-    if (!byUser.equals(this.ownerId)) {
-      throw new Error("Only owner can end the ride");
+  get startedAt() {
+    return this._startedAt
+  }
+
+  get endedAt() {
+    return this._endedAt
+  }
+
+  start() {
+    if (this._status !== RideSessionStatus.CREATED) {
+      throw new Error("RideSession can only be started from CREATED")
     }
 
-    if (this.status !== RideSessionStatus.RIDING) {
-      throw new Error("RideSession cannot be ended");
+    this._status = RideSessionStatus.RIDING
+    this._startedAt = new Date()
+  }
+
+  end() {
+    if (this._status !== RideSessionStatus.RIDING) {
+      throw new Error("RideSession can only be ended from RIDING")
     }
 
-    this.status = RideSessionStatus.ENDED;
+    this._status = RideSessionStatus.ENDED
+    this._endedAt = new Date()
+  }
+
+  assertCanUploadTrackPoint() {
+    if (!this._status.isRiding()) {
+      throw new Error("Cannot upload TrackPoint when session is not RIDING")
+    }
   }
 
   isRiding(): boolean {
-    return this.status === RideSessionStatus.RIDING;
+    return this._status === RideSessionStatus.RIDING;
   }
 }

@@ -16,7 +16,7 @@ export class EndRideSession {
       throw new Error("RideSession not found")
     }
 
-    session.end(input.byUserId)
+    session.end()
 
     await this.repo.save(session)
   }
