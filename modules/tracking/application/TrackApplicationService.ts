@@ -1,6 +1,7 @@
-import { Track } from "../domain/aggregates/Track"
-import { RideSession } from "@/modules/ride-session/domain/aggregates/RideSession"
-import { TrackPoint } from "../domain/entities/TrackPoint"
+import { RideSession } from "@/modules/ride-session/domain/RideSession"
+import { Track } from "../domain/Track"
+import { TrackPoint } from "../domain/TrackPoint"
+
 
 export class TrackApplicationService {
   addTrackPoint(
