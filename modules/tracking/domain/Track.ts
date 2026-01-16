@@ -13,8 +13,8 @@ export class Track {
 
   constructor(
     readonly id: TrackId,
-    readonly rideSessionId: RideSessionId,
-    readonly ownerId: UserId
+    readonly rideSessionId?: RideSessionId,
+    readonly ownerId?: UserId
   ) {}
 
   addPoint(point: TrackPoint) {
