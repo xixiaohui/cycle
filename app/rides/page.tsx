@@ -52,7 +52,7 @@ export default function RidesPage() {
   return (
     <div style={{ padding: 24 }}>
       <h1 className="text-8xl text-blue-700 tracking-tighter text-balance">
-        骑行列表
+        CYCLING LIST
       </h1>
 
       <ul>
@@ -62,7 +62,7 @@ export default function RidesPage() {
               {r.status} · {r.started_at ?? "未开始"}
             </Link>
             {" | "}
-            <Link href={`/rides/${r.id}/replay`}>回放</Link>
+            <Link href={`/rides/${r.id}/replay`}>REPLY</Link>
           </li>
         ))}
       </ul>
