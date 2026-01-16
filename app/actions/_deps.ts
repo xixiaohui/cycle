@@ -6,20 +6,20 @@ import { EndRideSession } from "@/modules/ride-session/application/EndRideSessio
 import { AddTrackPointToRideSession } from "@/modules/tracking/application/AddTrackPointToRideSession"
 
 
-export function createAddTrackPointUseCase() {
-  return new AddTrackPointToRideSession(
-    new SupabaseTrackRepository(),
-    new SupabaseRideSessionRepository()
-  )
-}
+// export function createAddTrackPointUseCase() {
+//   return new AddTrackPointToRideSession(
+//     new SupabaseTrackRepository(),
+//     new SupabaseRideSessionRepository()
+//   )
+// }
 
 
-export function createRideSessionUseCases() {
-  const repo = new SupabaseRideSessionRepository()
+// export function createRideSessionUseCases() {
+//   const repo = new SupabaseRideSessionRepository()
 
-  return {
-    create: new CreateRideSession(repo),
-    start: new StartRideSession(repo),
-    end: new EndRideSession(repo)
-  }
-}
+//   return {
+//     create: new CreateRideSession(repo),
+//     start: new StartRideSession(repo),
+//     end: new EndRideSession(repo)
+//   }
+// }
