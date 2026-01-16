@@ -31,9 +31,24 @@ export class SupabaseRideSessionRepository
 
     const persistence = RideSessionMapper.toPersistence(session)
 
+    // 1️⃣ 保存 RideSession
     const { error } = await supabase
       .from("ride_sessions")
-      .upsert(persistence)
+      .update(persistence)
+      .eq("id", session.id.toString())
+
+    // 2️⃣ 保存 Tracks（upsert）
+    const tracks = session.getTracks().map(track => ({
+      id: track.id.toString(),
+      ride_session_id: track.rideSessionId.toString(),
+      owner_id: track.ownerId.toString()
+    }))
+
+    if (tracks.length > 0) {
+      await supabase
+        .from("tracks")
+        .upsert(tracks, { onConflict: "id" })
+    }
 
     if (error) {
       throw new Error(`Failed to save RideSession: ${error.message}`)

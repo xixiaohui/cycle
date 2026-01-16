@@ -4,10 +4,15 @@ import { supabase } from "@/lib/supabaseClient";
 import { RideSessionListItem } from "@/modules/ride-session/query/RideSessionListItem";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { LiveRideMap } from "../actions/LiveRideMap";
+import { TrackListItem } from "@/modules/tracking/query/TrackListItem";
+
 
 
 export default function RidesPage() {
   const [rides, setRides] = useState<RideSessionListItem[]>([]);
+
+  const [tracks, setTracks] = useState<TrackListItem[]>([]);
 
   useEffect(() => {
     const fetchRides = async () => {
@@ -25,6 +30,23 @@ export default function RidesPage() {
     };
 
     fetchRides();
+
+    const fetchTracks = async () => {
+      const { data,error } = await supabase
+      .from("tracks")
+      .select("id, owner_id")
+      .eq("ride_session_id", "params.id")
+
+      if (error) {
+        console.error(error)
+        return
+      }
+
+      setTracks(data ?? [])
+    }
+
+    fetchTracks();
+
   }, []);
 
   return (
@@ -44,6 +66,13 @@ export default function RidesPage() {
           </li>
         ))}
       </ul>
+
+      {/* <LiveRideMap
+        tracks={tracks.map(t => ({
+          track_id: t.id,
+          user_id: t.owner_id
+        }))}
+      /> */}
     </div>
   );
 }

@@ -1,25 +1,22 @@
-import { supabase } from "../supabaseClient"
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { supabase } from "@/lib/supabaseClient"
 
 export function subscribeTrackPoints(
   trackId: string,
-  onPoint: (point: {
-    lat: number
-    lon: number
-    speed: number
-    recordedAt: string
-  }) => void
+  onInsert: (point: any) => void
 ) {
-
   const channel = supabase
-    .channel("track-points")
+    .channel(`track_points:${trackId}`)
     .on(
-      "broadcast",
-      { event: "track_point_added" },
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "track_points",
+        filter: `track_id=eq.${trackId}`
+      },
       payload => {
-        if (payload.payload.trackId === trackId) {
-          onPoint(payload.payload)
-        }
+        onInsert(payload.new)
       }
     )
     .subscribe()

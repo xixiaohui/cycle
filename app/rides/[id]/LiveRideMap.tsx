@@ -1,22 +1,30 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import { useEffect, useState } from "react"
 import { subscribeTrackPoints } from "@/lib/realtime/trackPoints"
 
+type TrackPointDTO = {
+  track_id: string
+  lat: number
+  lon: number
+  recorded_at: string
+}
+
 export function LiveRideMap({
-  participants
+  tracks
 }: {
-  participants: { user_id: string; track_id: string }[]
+  tracks: { track_id: string; user_id: string }[]
 }) {
-  const [points, setPoints] = useState<Record<string, any[]>>({})
+  const [points, setPoints] = useState<
+    Record<string, TrackPointDTO[]>
+  >({})
 
   useEffect(() => {
-    const unsubscribers = participants.map(p =>
-      subscribeTrackPoints(p.track_id, point => {
+    const unsubscribers = tracks.map(t =>
+      subscribeTrackPoints(t.track_id, point => {
         setPoints(prev => ({
           ...prev,
-          [p.track_id]: [...(prev[p.track_id] ?? []), point]
+          [t.track_id]: [...(prev[t.track_id] ?? []), point]
         }))
       })
     )
@@ -24,14 +32,17 @@ export function LiveRideMap({
     return () => {
       unsubscribers.forEach(u => u())
     }
-  }, [participants])
+  }, [tracks])
 
   return (
     <div>
       <h3>实时轨迹</h3>
+
       {Object.entries(points).map(([trackId, pts]) => (
         <div key={trackId}>
-          Track {trackId}：{pts.length} 点
+          <strong>Track {trackId}</strong>：{pts.length} 点
+          <br />
+          最新：{pts.at(-1)?.lat}, {pts.at(-1)?.lon}
         </div>
       ))}
     </div>

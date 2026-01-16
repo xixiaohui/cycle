@@ -3,7 +3,7 @@ import { UserId } from "@/modules/sharing/identity/UserId"
 import { RideSession } from "../domain/RideSession"
 import { RideSessionId } from "../domain/RideSessionId"
 import { RideSessionStatus } from "../domain/RideSessionStatus"
-import { TrackId } from "@/modules/tracking/domain/TrackId"
+
 
 
 
@@ -20,7 +20,6 @@ export class RideSessionMapper {
     raw.participants?.forEach((p: any) => {
       session.join(
         UserId.from(p.user_id),
-        TrackId.from(p.track_id)
       )
     })
 

@@ -6,14 +6,15 @@ import { RideStarted } from "./events/RideStarted"
 import { RideEnded } from "./events/RideEnded"
 import { DomainEvent } from "@/modules/shared/domain/DomainEvent"
 
-import { RideParticipant } from "./RideParticipant"
+
 import { TrackId } from "@/modules/tracking/domain/TrackId"
+import { Track } from "@/modules/tracking/domain/Track"
 
 
 export class RideSession {
   private domainEvents: DomainEvent[] = []
 
-  private participants: RideParticipant[] = []
+  private tracks: Track[] = []
 
   constructor(
     readonly id: RideSessionId,
@@ -43,7 +44,16 @@ export class RideSession {
     this._status = RideSessionStatus.RIDING
     this._startedAt = new Date()
 
+    // 🔥 关键：为发起人创建 Track
+    const track = new Track(
+      TrackId.new(),
+      this.id,
+      this.ownerId
+    )
+
     this.domainEvents.push(new RideStarted(this.id))
+
+    this.tracks.push(track)
   }
 
   end() {
@@ -73,24 +83,46 @@ export class RideSession {
     return events
   }
 
-  join(userId: UserId, trackId: TrackId) {
-    if (this._status === RideSessionStatus.ENDED) {
-      throw new Error("Cannot join ended RideSession")
+  join(userId: UserId) {
+    if (this.status !== RideSessionStatus.RIDING) {
+      throw new Error("Cannot join a ride that is not riding")
     }
 
-    if (this.participants.some(p => p.userId.equals(userId))) {
-      throw new Error("User already joined")
+    const exists = this.tracks.some(
+      t => t.ownerId.equals(userId)
+    )
+
+    if (exists) {
+      throw new Error("User already joined this ride")
     }
 
-    this.participants.push(new RideParticipant(userId, trackId))
+
+    const track = new Track(
+      TrackId.new(),
+      this.id,
+      userId
+    )
+
+    this.tracks.push(track)
   }
 
+  addTrack(track: Track) {
+    if (this.status !== RideSessionStatus.RIDING) {
+      throw new Error("Cannot add track unless riding")
+    }
 
-  getParticipants(): readonly RideParticipant[] {
-    return this.participants
+    const exists = this.tracks.some(
+      t => t.ownerId.equals(track.ownerId)
+    )
+
+    if (exists) {
+      throw new Error("User already has a track")
+    }
+
+    this.tracks.push(track)
   }
 
-   getTrackIdOf(userId: UserId): TrackId | null {
-    return this.participants.find(p => p.userId.equals(userId))?.trackId ?? null
+  getTracks(): readonly Track[] {
+    return this.tracks
   }
 }
