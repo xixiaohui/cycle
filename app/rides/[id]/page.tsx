@@ -1,6 +1,6 @@
 
 import { supabase } from "@/lib/supabaseClient"
-import { LiveRideMap } from "./LiveRideMap"
+
 import { RideControls } from "./RideControls"
 
 
@@ -31,7 +31,7 @@ export default async function RidePage({
   return (
     <div style={{ padding: 24 }}>
       <h1>骑行中：{session.id}</h1>
-      <LiveRideMap participants={session.participants} />
+     
 
       <RideControls rideId={session.id} status={session.status} />
     </div>

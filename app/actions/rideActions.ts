@@ -12,6 +12,6 @@ export async function startRideSessionAction(id: string) {
     const userId = UserId.from("")
 
   const { start } = createRideSessionUseCases()
-  await start.execute({ sessionId: RideSessionId.from(id) ,byUserId:userId})
+  await start.execute({ rideSessionId: RideSessionId.from(id)})
 }
 

@@ -4,22 +4,24 @@ import { CreateRideSession } from "@/modules/ride-session/application/CreateRide
 import { StartRideSession } from "@/modules/ride-session/application/StartRideSession"
 import { EndRideSession } from "@/modules/ride-session/application/EndRideSession"
 import { AddTrackPointToRideSession } from "@/modules/tracking/application/AddTrackPointToRideSession"
+import { EventBus } from "@/modules/shared/domain/EventBus"
 
 
-// export function createAddTrackPointUseCase() {
-//   return new AddTrackPointToRideSession(
-//     new SupabaseTrackRepository(),
-//     new SupabaseRideSessionRepository()
-//   )
-// }
+export function createAddTrackPointUseCase() {
+  return new AddTrackPointToRideSession(
+    new SupabaseTrackRepository(),
+    new SupabaseRideSessionRepository(),
+    new EventBus()
+  )
+}
 
 
-// export function createRideSessionUseCases() {
-//   const repo = new SupabaseRideSessionRepository()
+export function createRideSessionUseCases() {
+  const repo = new SupabaseRideSessionRepository()
 
-//   return {
-//     create: new CreateRideSession(repo),
-//     start: new StartRideSession(repo),
-//     end: new EndRideSession(repo)
-//   }
-// }
+  return {
+    create: new CreateRideSession(repo),
+    start: new StartRideSession(repo,new EventBus()),
+    end: new EndRideSession(repo)
+  }
+}
