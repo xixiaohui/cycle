@@ -8,6 +8,8 @@ import { ThemeProvider } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
 import { GlobalStyles } from "@mui/material";
 
+import "leaflet/dist/leaflet.css";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
