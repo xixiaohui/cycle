@@ -40,8 +40,8 @@ export class SupabaseRideSessionRepository
     // 2️⃣ 保存 Tracks（upsert）
     const tracks = session.getTracks().map(track => ({
       id: track.id.toString(),
-      ride_session_id: track.rideSessionId.toString(),
-      owner_id: track.ownerId.toString()
+      ride_session_id: track.rideSessionId!.toString(),
+      owner_id: track.ownerId!.toString()
     }))
 
     if (tracks.length > 0) {
