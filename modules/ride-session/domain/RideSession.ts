@@ -89,7 +89,7 @@ export class RideSession {
     }
 
     const exists = this.tracks.some(
-      t => t.ownerId.equals(userId)
+      t => t.ownerId!.equals(userId)
     )
 
     if (exists) {
@@ -112,7 +112,7 @@ export class RideSession {
     }
 
     const exists = this.tracks.some(
-      t => t.ownerId.equals(track.ownerId)
+      t => t.ownerId!.equals(track.ownerId!)
     )
 
     if (exists) {
