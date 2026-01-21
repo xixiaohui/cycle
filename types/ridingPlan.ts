@@ -14,7 +14,7 @@ export interface Location {
 //   Z5: number;
 // }
 
-type TrainingZones = Record<"Z1" | "Z2" | "Z3" | "Z4" | "Z5", number>;
+export type TrainingZones = Record<"Z1" | "Z2" | "Z3" | "Z4" | "Z5", number>;
 
 export interface Weather {
   summary: string;

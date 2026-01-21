@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Box, Typography, Paper, LinearProgress } from "@mui/material";
+import { ridingPlanApi } from "@/lib/api";
 
 // Utility: Haversine distance (meters)
 function haversine(
@@ -201,21 +202,34 @@ export default function GpxUploader({ planId, onDone }: Props) {
         updatePayload.decrease = Math.round(metadata.cumulativeDecrease);
       if (file_name) updatePayload.title = file_name;
 
-      const { data, error: upErr } = await supabase
-        .from("riding_plans")
-        .update(updatePayload)
-        .eq("id", planId)
-        .select()
-        .single();
+      // const { data, error: upErr } = await supabase
+      //   .from("riding_plans")
+      //   .update(updatePayload)
+      //   .eq("id", planId)
+      //   .select()
+      //   .single();
 
-      if (upErr) throw upErr;
+      // if (upErr) throw upErr;
+
+       ridingPlanApi
+        .update(planId, updatePayload)
+        .then((data) => {
+
+          console.log(data)
+          if (onDone) onDone(data);
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+        .finally(() => {});
 
       setStats({
         distance_km: updatePayload.distance_km,
         duration_min: updatePayload.duration_min,
         points: points.length,
       });
-      if (onDone) onDone(data);
+
+      // if (onDone) onDone(data);
     } catch (e: any) {
       setError(e.message || String(e));
       console.error(e);

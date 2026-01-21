@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { RideSessionListItem } from "@/modules/ride-session/query/RideSessionListItem";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { LiveRideMap } from "../actions/LiveRideMap";
+
 import { TrackListItem } from "@/modules/tracking/query/TrackListItem";
 
 
@@ -30,7 +30,7 @@ export default function RidesPage() {
     };
 
     fetchRides();
-
+    
     const fetchTracks = async () => {
       const { data,error } = await supabase
       .from("tracks")
@@ -45,6 +45,7 @@ export default function RidesPage() {
       setTracks(data ?? [])
     }
 
+    
     fetchTracks();
 
   }, []);

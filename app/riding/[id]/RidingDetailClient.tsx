@@ -6,6 +6,7 @@ import { Box, CircularProgress, Typography } from "@mui/material";
 import Footer from "@/components/Footer";
 import { useEffect, useState } from "react";
 import { RidingPlanPro } from "@/types/ridingPlan";
+import { ridingPlanApi } from "@/lib/api";
 
 interface Props {
   planId: string;
@@ -22,66 +23,78 @@ export default function RidingDetailClient({ planId }: Props) {
     async function fetchPlan() {
       setLoading(true);
 
-      let cachedPlans: RidingPlanPro[] = [];
-      let needFetch = true;
+      // let cachedPlans: RidingPlanPro[] = [];
+      // let needFetch = true;
 
-      // 1️⃣ 读取缓存
-      // 1️⃣ 读取缓存列表
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        const now = Date.now();
+      // // 1️⃣ 读取缓存
+      // // 1️⃣ 读取缓存列表
+      // const cached = localStorage.getItem(CACHE_KEY);
+      // if (cached) {
+      //   const parsed = JSON.parse(cached);
+      //   const now = Date.now();
 
-        if (parsed.timestamp && now - parsed.timestamp < CACHE_DURATION) {
-          cachedPlans = parsed.data || [];
-          needFetch = false;
-        } else {
-          cachedPlans = parsed.data || []; // 先显示旧缓存
-        }
+      //   if (parsed.timestamp && now - parsed.timestamp < CACHE_DURATION) {
+      //     cachedPlans = parsed.data || [];
+      //     needFetch = false;
+      //   } else {
+      //     cachedPlans = parsed.data || []; // 先显示旧缓存
+      //   }
 
-        // 从缓存列表中找当前 plan
-        console.log(cachedPlans);
+      //   // 从缓存列表中找当前 plan
+      //   console.log(cachedPlans);
 
-        const cachedPlan = cachedPlans.find((p) => String(p.id) === planId);
-        if (cachedPlan) setPlan(cachedPlan);
-      }
+      //   const cachedPlan = cachedPlans.find((p) => String(p.id) === planId);
+      //   if (cachedPlan) setPlan(cachedPlan);
+      // }
 
-      // 2️⃣ 拉取最新数据（缓存不存在或过期）
-      if (needFetch) {
-        const { data, error } = await supabase
-          .from("riding_plans")
-          .select(
-            `
-            *,
-            participants:riding_plan_participants (
-              id,
-              user_id,
-              name,
-              avatar_url
-            )
-          `
-          )
-          .eq("id", planId)
-          .single();
+      // // 2️⃣ 拉取最新数据（缓存不存在或过期）
+      // if (needFetch) {
+      //   const { data, error } = await supabase
+      //     .from("riding_plans")
+      //     .select(
+      //       `
+      //       *,
+      //       participants:riding_plan_participants (
+      //         id,
+      //         user_id,
+      //         name,
+      //         avatar_url
+      //       )
+      //     `,
+      //     )
+      //     .eq("id", planId)
+      //     .single();
 
-        if (!error && data) {
+      //   if (!error && data) {
+      //     setPlan(data);
+      //     // 3️⃣ 更新整个列表缓存（可选择只更新单条或重新 fetch 列表）
+      //     // 简单起见，这里直接覆盖缓存列表中该条计划
+      //     const updatedPlans = cachedPlans.filter(
+      //       (p) => String(p.id) !== planId,
+      //     );
+      //     updatedPlans.push(data);
+
+      //     console.log("RidingDetailClient--line 76--");
+      //     localStorage.setItem(
+      //       CACHE_KEY,
+      //       JSON.stringify({ data: updatedPlans, timestamp: Date.now() }),
+      //     );
+      //   }
+      // }
+
+      // setLoading(false);
+
+      ridingPlanApi
+        .getById(planId)
+        .then((data) => {
           setPlan(data);
-          // 3️⃣ 更新整个列表缓存（可选择只更新单条或重新 fetch 列表）
-          // 简单起见，这里直接覆盖缓存列表中该条计划
-          const updatedPlans = cachedPlans.filter(
-            (p) => String(p.id) !== planId
-          );
-          updatedPlans.push(data);
-
-          console.log("RidingDetailClient--line 76--")
-          localStorage.setItem(
-            CACHE_KEY,
-            JSON.stringify({ data: updatedPlans, timestamp: Date.now() })
-          );
-        }
-      }
-
-      setLoading(false);
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     }
 
     fetchPlan();
