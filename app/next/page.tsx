@@ -3,7 +3,7 @@
 import CycleCardPro from "@/components/CycleCardPro";
 import Footer from "@/components/Footer";
 import { ridingPlanApi } from "@/lib/api";
-import { supabase } from "@/lib/supabaseClient";
+import { fetchRidingPlans } from "@/lib/impl/ridingPlan.postgres";
 import { RidingPlanPro } from "@/types/ridingPlan";
 import { AddAlarm, BikeScooter } from "@mui/icons-material";
 import {
@@ -11,6 +11,8 @@ import {
   CircularProgress,
   Container,
   Grid,
+  Pagination,
+  Stack,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -63,6 +65,13 @@ export default function NextPage() {
   const [plans, setPlans] = useState<RidingPlanPro[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  //分页信息
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 10;
+
+  
 
   const handleAddRidingPlan = async () => {
     const random_img_id = Math.floor(Math.random() * 201) + 100;
@@ -122,7 +131,7 @@ export default function NextPage() {
         setRefreshKey((p) => p + 1);
 
         //写入本地localStorage
-        saveToLocalCache(data);
+        // saveToLocalCache(data);
       })
       .catch((err) => {
         console.log("没有插入成功")
@@ -212,32 +221,47 @@ export default function NextPage() {
         // }
       // }
 
-      ridingPlanApi
-        .list({ limit: 50 })
-        .then((data) => {
-          console.log("从数据库获取数据");
-          console.log(data);
-          setPlans(data); // 更新页面显示最新数据
+      // ridingPlanApi
+      //   .list({ limit: 50 })
+      //   .then((data) => {
+      //     console.log("从数据库获取数据");
+      //     // console.log(data);
+      //     setPlans(data); // 更新页面显示最新数据
 
-          // 3️⃣ 更新缓存
-          localStorage.setItem(
-            CACHE_KEY,
-            JSON.stringify({ data, timestamp: Date.now() }),
-          );
-        })
-        .catch((error) => {
-          setPlans([]); // 缓存也不存在，显示空
-          console.error("获取骑行计划失败:", error);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+      //     // 3️⃣ 更新缓存
+      //     // localStorage.setItem(
+      //     //   CACHE_KEY,
+      //     //   JSON.stringify({ data, timestamp: Date.now() }),
+      //     // );
+      //   })
+      //   .catch((error) => {
+      //     setPlans([]); // 缓存也不存在，显示空
+      //     console.error("获取骑行计划失败:", error);
+      //   })
+      //   .finally(() => {
+      //     setLoading(false);
+      //   });
 
       // setLoading(false);
     }
 
     fetchPlans();
   }, [refreshKey]); // 空依赖数组，组件挂载时执行一次
+
+  useEffect(() => {
+    fetchRidingPlans((page-1)*limit, limit)
+      .then((res) => {
+        setPlans(res.data);
+        setTotalPages(res.pagination.totalPages);
+      })
+      .catch((error) => {
+        setPlans([]); // 缓存也不存在，显示空
+        console.error("获取骑行计划失败:", error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [page]);
 
   if (loading)
     return (
@@ -305,7 +329,21 @@ export default function NextPage() {
             ))}
           </div>
         </Box>
+
+        
       </Grid>
+
+      {/* 分页 */}
+      <Stack alignItems="center">
+        <Pagination
+          count={totalPages}
+          page={page}
+          onChange={(_, value) => setPage(value)}
+          color="primary"
+          showFirstButton
+          showLastButton
+        />
+      </Stack>
       <Footer></Footer>
     </Container>
   );

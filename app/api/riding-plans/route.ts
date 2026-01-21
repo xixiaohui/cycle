@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
 
@@ -98,37 +99,62 @@ export async function POST(req: Request) {
 
 
 
+export const runtime = "nodejs";
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
+  try {
+    const { searchParams } = new URL(req.url);
 
-  const limit = Number(searchParams.get("limit") ?? 20);
-  const offset = Number(searchParams.get("offset") ?? 0);
+    const limit = Number(searchParams.get("limit") ?? 10);
+    const offset = Number(searchParams.get("offset") ?? 0);
 
-  const { rows } = await pool.query(
-    `
-    SELECT
-      rp.*,
-      COALESCE(
-        json_agg(
-          json_build_object(
-            'id', rpp.id,
-            'user_id', rpp.user_id,
-            'name', rpp.name,
-            'avatar_url', rpp.avatar_url
-          )
-        ) FILTER (WHERE rpp.id IS NOT NULL),
-        '[]'
-      ) AS participants
-    FROM riding_plans rp
-    LEFT JOIN riding_plan_participants rpp
-      ON rpp.plan_id = rp.id
-    GROUP BY rp.id
-    ORDER BY rp.start_time DESC
-    LIMIT $1 OFFSET $2
-    `,
-    [limit, offset]
-  );
+    // ⭐ 1️⃣ 总数（注意：不 join，性能最好）
+    const totalRes = await pool.query(
+      "SELECT COUNT(*) FROM riding_plans"
+    );
+    const total = Number(totalRes.rows[0].count);
 
-  return NextResponse.json({ success: true, data: rows });
+    // ⭐ 2️⃣ 原有列表查询（几乎不动）
+    const { rows } = await pool.query(
+      `
+      SELECT
+        rp.*,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', rpp.id,
+              'user_id', rpp.user_id,
+              'name', rpp.name,
+              'avatar_url', rpp.avatar_url
+            )
+          ) FILTER (WHERE rpp.id IS NOT NULL),
+          '[]'
+        ) AS participants
+      FROM riding_plans rp
+      LEFT JOIN riding_plan_participants rpp
+        ON rpp.plan_id = rp.id
+      GROUP BY rp.id
+      ORDER BY rp.start_time DESC
+      LIMIT $1 OFFSET $2
+      `,
+      [limit, offset]
+    );
+
+    return NextResponse.json({
+      success: true,
+      data: rows,
+      pagination: {
+        limit,
+        offset,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (err: any) {
+    console.error("GET /api/riding-plans error:", err);
+    return NextResponse.json(
+      { success: false, message: err.message },
+      { status: 500 }
+    );
+  }
 }

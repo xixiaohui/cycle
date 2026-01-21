@@ -25,4 +25,6 @@ export interface RidingPlanApi {
   update(id: string, patch: RidingPlanUpdate): Promise<RidingPlanPro>;
   remove(id: string): Promise<void>;
 
+
+  
 }

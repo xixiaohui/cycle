@@ -1,5 +1,10 @@
 import { RidingPlanPro } from "@/types/ridingPlan";
-import { RidingPlanApi, RidingPlanListQuery, RidingPlanUpdate } from "../api/ridingPlanApi";
+import {
+  RidingPlanApi,
+  RidingPlanListQuery,
+  RidingPlansPage,
+  RidingPlanUpdate,
+} from "../api/ridingPlanApi";
 
 export const postgresRidingPlanApi: RidingPlanApi = {
   async create(plan: RidingPlanPro): Promise<RidingPlanPro> {
@@ -10,7 +15,6 @@ export const postgresRidingPlanApi: RidingPlanApi = {
     });
 
     if (!res.ok) {
-
       throw new Error("PostgreSQL insert failed");
     }
 
@@ -48,5 +52,17 @@ export const postgresRidingPlanApi: RidingPlanApi = {
 
   async remove(id: string) {
     await fetch(`/api/riding-plans/${id}`, { method: "DELETE" });
-  }
+  },
 };
+
+export async function fetchRidingPlans(offset: number, limit = 10) {
+  const res = await fetch(`/api/riding-plans?limit=${limit}&offset=${offset}`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("获取骑行计划失败");
+  }
+
+  return res.json();
+}
