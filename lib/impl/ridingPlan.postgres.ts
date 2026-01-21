@@ -2,7 +2,6 @@ import { RidingPlanPro } from "@/types/ridingPlan";
 import {
   RidingPlanApi,
   RidingPlanListQuery,
-  RidingPlansPage,
   RidingPlanUpdate,
 } from "../api/ridingPlanApi";
 
