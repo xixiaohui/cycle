@@ -3,15 +3,17 @@ import pool from "@/lib/db";
 
 export async function POST(
   _: Request,
-  { params }: { params: { id: string } }
+  context : { params: Promise<{ id: string }> }
 ) {
+
+  const { id } = await context.params;
   await pool.query(
     `
     UPDATE tracks
     SET finished_at = now()
     WHERE id = $1
     `,
-    [params.id]
+    [id]
   );
 
   return Response.json({ success: true });
