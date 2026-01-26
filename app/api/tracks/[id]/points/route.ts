@@ -11,8 +11,11 @@ type TrackPoint = {
 
 export async function POST(
   req: Request,
-  { params }: { params: { trackId: string } }
+  context: { params: Promise<{ trackId: string }> }
 ) {
+
+  const { trackId } = await context.params;
+
   const body = await req.json();
 
   const points: TrackPoint[] = Array.isArray(body.points)
@@ -40,7 +43,7 @@ export async function POST(
 
   // 参数数组
   const values = points.flatMap((p) => [
-    params.trackId,
+    trackId,
     p.lat,
     p.lng,
     p.speed ?? null,
