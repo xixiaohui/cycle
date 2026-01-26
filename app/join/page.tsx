@@ -1,8 +1,7 @@
 "use client";
 
 import Footer from "@/components/Footer";
-import { Box, Button, Container, Grid, Link, Typography } from "@mui/material";
-import { v4 as uuidv4 } from "uuid";
+import { Box, Container, Grid, Link, Typography } from "@mui/material";
 import {
   List,
   ListItemButton,
@@ -15,7 +14,8 @@ import DirectionsBikeIcon from "@mui/icons-material/DirectionsBike";
 
 import { supabase } from "@/lib/supabaseClient";
 import { useEffect, useState } from "react";
-import { fetchRidingPlans } from "@/lib/impl/ridingPlan.postgres";
+
+
 
 function Join() {
   return (
@@ -31,11 +31,11 @@ function Join() {
     </Box>
   );
 }
-
-interface TrackPoints {
+export interface TrackPoints {
   track_id: string;
   created_at: string;
 }
+
 export interface GetTrackPoints {
   fetchTracks(): Promise<TrackPoints[]>;
 }
@@ -83,13 +83,14 @@ export const supabaseGetTrackPoints: GetTrackPoints = {
     }));
   },
 };
-
-const usePostgres = process.env.USE_SUPABASE === "false";
-export const getTrackPoints:GetTrackPoints = usePostgres?supabaseGetTrackPoints:postgresGetTrackPoints;
+const useSupabase = false;
+export const getTrackPoints:GetTrackPoints = useSupabase?supabaseGetTrackPoints:postgresGetTrackPoints;
 
 function StartCycling() {
   const [tracks, setTracks] = useState<TrackPoints[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  
 
   useEffect(() => {
     // const fetchTracks = async () => {
