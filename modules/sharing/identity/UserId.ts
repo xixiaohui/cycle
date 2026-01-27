@@ -1,4 +1,5 @@
 export class UserId {
+  
   private constructor(private readonly value: string) {}
 
   static from(value: string): UserId {

@@ -11,6 +11,20 @@ import { TrackId } from "@/modules/tracking/domain/TrackId"
 import { Track } from "@/modules/tracking/domain/Track"
 
 
+// CREATE TABLE IF NOT EXISTS ride_sessions (
+//   id UUID PRIMARY KEY,
+//   owner_id UUID NOT NULL,
+//   status TEXT NOT NULL,
+//   started_at TIMESTAMPTZ,
+//   ended_at TIMESTAMPTZ
+// );
+
+// CREATE TABLE IF NOT EXISTS tracks (
+//   id UUID PRIMARY KEY,
+//   session_id UUID NOT NULL REFERENCES ride_sessions(id) ON DELETE CASCADE,
+//   owner_id UUID NOT NULL
+// );
+
 export class RideSession {
   private domainEvents: DomainEvent[] = []
 

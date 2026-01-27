@@ -4,10 +4,14 @@ import { RideSession } from "../domain/RideSession"
 import { RideSessionId } from "../domain/RideSessionId"
 import { RideSessionMapper } from "./RideSessionMapper"
 import { supabase } from "@/lib/supabaseClient"
+import { UserId } from "@/modules/sharing/identity/UserId"
 
 export class SupabaseRideSessionRepository
   implements RideSessionRepository
 {
+  async findRecentByUser(userId: UserId, limit: number): Promise<RideSession[]> {
+    throw new Error("Method not implemented.")
+  }
   async findById(id: RideSessionId): Promise<RideSession | null> {
 
     const { data, error } = await supabase
