@@ -13,8 +13,10 @@ export class RideSessionQueryService{
     userId: UserId,
     limit = 20
   ): Promise<RideSessionListItemVM[]> {
+    console.log("---------------11-------");
     const sessions = await this.repo.findRecentByUser(userId, limit)
 
+    console.log("---------------22-------");
     return sessions.map(session => ({
       id: session.id.toString(),
       startedAt: session.startedAt

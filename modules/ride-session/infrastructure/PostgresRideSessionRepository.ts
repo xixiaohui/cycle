@@ -20,25 +20,21 @@ export class PostgresRideSessionRepository
     userId: UserId,
     limit: number
   ): Promise<RideSession[]> {
+
+    console.log("---------------111-------")
     const { rows } = await pool.query(
       `
       SELECT
-        rs.id,
-        rs.owner_id,
-        rs.status,
-        rs.started_at,
-        rs.ended_at,
-        t.id AS track_id,
-        t.owner_id AS track_owner_id
-      FROM ride_sessions rs
-      LEFT JOIN tracks t ON t.session_id = rs.id
-      WHERE rs.owner_id = $1
-      ORDER BY rs.started_at DESC NULLS LAST
+        *
+      FROM ride_sessions
+      WHERE owner_id = $1
+      ORDER BY started_at DESC
       LIMIT $2
+      
       `,
-      [userId.toString, limit]
+      [userId.toString(), limit]
     )
-
+    console.log("---------------222-------")
     return this.mapRowsToSessions(rows)
   }
 
