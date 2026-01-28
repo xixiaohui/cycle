@@ -25,10 +25,10 @@ export class PostgresRideSessionRepository
     const { rows } = await pool.query(
       `
       SELECT
-        *
+        id,owner_id,status,started_at,ended_at,created_at
       FROM ride_sessions
       WHERE owner_id = $1
-      ORDER BY started_at DESC
+      ORDER BY created_at DESC
       LIMIT $2
       
       `,

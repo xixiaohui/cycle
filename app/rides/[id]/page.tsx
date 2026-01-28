@@ -1,39 +1,39 @@
+import { notFound } from "next/navigation";
+import SessionHeader from "./components/SessionHeader";
+import SessionActions from "./components/SessionActions";
+import SessionTimeline from "./components/SessionTimeline";
+import pool from "@/lib/db";
 
-import { supabase } from "@/lib/supabaseClient"
+async function getRideSession(id: string) {
+  const { rows } = await pool.query(
+    `SELECT * FROM ride_sessions WHERE id = $1`,
+    [id]
+  );
 
-import { RideControls } from "./RideControls"
+  return rows[0] ?? null;
+}
 
-
-export default async function RidePage({
-  params
+export default async function RideSessionDetailPage({
+  params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>;
 }) {
+  const {id} = await params
+  console.log("----------1-----------");
+  
+  const session = await getRideSession(id);
 
-
-  const { data: session } = await supabase
-    .from("ride_sessions")
-    .select(`
-      id,
-      status,
-      participants:ride_participants (
-        user_id,
-        track_id
-      )
-    `)
-    .eq("id", params.id)
-    .single()
-
+  console.log(session);
+  
   if (!session) {
-    return <div>Ride not found</div>
+    notFound();
   }
 
   return (
-    <div style={{ padding: 24 }}>
-      <h1>骑行中：{session.id}</h1>
-     
-
-      <RideControls rideId={session.id} status={session.status} />
+    <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+      <SessionHeader session={session} />
+      <SessionActions session={session} />
+      <SessionTimeline session={session} />
     </div>
-  )
+  );
 }

@@ -1,14 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { TrackListItem } from "@/modules/tracking/query/TrackListItem";
 import { RideSessionListItemVM } from "@/modules/ride-session/application/query/RideSessionListItemVM";
+
+import { useRouter } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Stack,
+} from "@mui/material";
+
 
 
 export default function RidesPage() {
   const [rides, setRides] = useState<RideSessionListItemVM []>([]);
 
   const [loading,setLoading] = useState(true)
+
+  const router = useRouter();
 
 
   useEffect(() => {
@@ -22,6 +32,8 @@ export default function RidesPage() {
         }
         const data = await res.json();
         setRides(data)
+
+        console.log(data)
       }catch(err){
         console.error(err);
       }finally{
@@ -46,12 +58,39 @@ export default function RidesPage() {
         CYCLING LIST
       </h1>
 
-      {rides.map((ride) =>(
-        <div key={ride.id}>
-          <div>Status:{ride.status}</div>
-          <div>Start:{ride.startedAt}</div>
-        </div>
-      ))}
+      {rides.map((ride) => (
+    <Card
+      key={ride.id}
+      sx={{
+        mb: 2,
+        cursor: "pointer",
+        "&:hover": {
+          boxShadow: 6,
+        },
+      }}
+      onClick={() => router.push(`/rides/${ride.id}`)}
+    >
+      <CardContent>
+        <Stack spacing={1}>
+          <Typography variant="subtitle1">
+            Status: {ride.status}
+          </Typography>
+
+          <Typography variant="body2" color="text.secondary">
+            Start: {ride.startedAt ?? "-"}
+          </Typography>
+
+          <Typography variant="body2">
+            ParticipantCount: {ride.participantCount}
+          </Typography>
+
+          <Typography variant="body2">
+            IsRiding: {ride.isRiding ? "true" : "false"}
+          </Typography>
+        </Stack>
+      </CardContent>
+    </Card>
+  ))}
 
 
     </div>

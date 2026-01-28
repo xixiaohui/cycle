@@ -27,7 +27,8 @@ export class RideSessionQueryService{
         : null,
       status: mapRideSessionStatusToUI(session.status), // 假设是 VO
       participantCount: session.getTracks().length,
-      isRiding: session.isRiding()
+      isRiding: session.isRiding(),
+      ownerId:session.ownerId.toString()
     }))
   }
 }

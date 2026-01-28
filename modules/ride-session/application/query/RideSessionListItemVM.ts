@@ -5,4 +5,5 @@ export interface RideSessionListItemVM {
   status: "created" | "riding" | "ended"
   participantCount: number
   isRiding: boolean
+  ownerId: string
 }
