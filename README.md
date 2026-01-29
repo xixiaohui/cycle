@@ -62,3 +62,59 @@ using (true);
   俱乐部成员一起骑
   实时看到彼此
   结束后能复盘 / 分享
+
+
+
+
+2026.1.29
+
+CREATE TABLE ride_session_participants (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID NOT NULL REFERENCES ride_sessions(id),
+  user_id UUID NOT NULL,
+  role TEXT DEFAULT 'member', -- owner / member
+  joined_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE (session_id, user_id)
+);
+
+CREATE TABLE tracks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID NOT NULL REFERENCES ride_sessions(id),
+  user_id UUID NOT NULL,
+  started_at TIMESTAMPTZ,
+  ended_at TIMESTAMPTZ,
+  UNIQUE (session_id, user_id)
+);
+
+
+ALTER TABLE track_points
+ADD CONSTRAINT fk_track_points_track
+FOREIGN KEY (track_id)
+REFERENCES tracks(id)
+ON DELETE CASCADE;
+
+
+# 当前用户自己的轨迹
+SELECT *
+FROM track_points
+WHERE track_id = $1
+ORDER BY recorded_at ASC;
+
+# 一个 Session 所有人的点（地图用）
+SELECT
+  tp.*,
+  t.user_id
+FROM track_points tp
+JOIN tracks t ON t.id = tp.track_id
+WHERE t.session_id = $1
+ORDER BY tp.recorded_at ASC;
+
+CREATE INDEX idx_track_points_recent
+ON track_points (track_id, recorded_at DESC);
+
+# 拿“最新一个点”会非常快：
+SELECT *
+FROM track_points
+WHERE track_id = $1
+ORDER BY recorded_at DESC
+LIMIT 1;
