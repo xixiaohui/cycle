@@ -12,6 +12,7 @@ type TrackPoint = {
   recorded_at: string;
 };
 
+//只画我自己的
 export default function MyTrackLive({ trackId }: { trackId: string }) {
   const [points, setPoints] = useState<TrackPoint[]>([]);
   const [loading, setLoading] = useState(true);

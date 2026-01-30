@@ -96,8 +96,9 @@ export async function GET(
   const limit = Number(searchParams.get("limit") ?? 50);
 
   // TODO: 从 auth 拿 userId
-  const userId = "11111111-1111-1111-1111-111111111111";
-
+  // const userId = "11111111-1111-1111-1111-111111111111";
+  const userId = "11111111-1111-1111-1111-222222222222";
+  
   const { rows } = await pool.query(
     `
     SELECT tp.*

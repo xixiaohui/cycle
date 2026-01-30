@@ -60,7 +60,8 @@ export default function RidesPage() {
           <CardContent>
             <Stack spacing={1}>
               <Typography variant="subtitle1">Status: {ride.status}</Typography>
-
+              <Typography variant="body2">SessionId:{ride.id}</Typography>
+              <Typography variant="body2">OwnerId:{ride.ownerId}</Typography>
               <Typography variant="body2" color="text.secondary">
                 Start: {ride.startedAt ?? "-"}
               </Typography>

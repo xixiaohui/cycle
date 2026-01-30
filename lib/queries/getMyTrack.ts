@@ -2,6 +2,7 @@
 
 import pool from "../db";
 
+//当前用户在 Session 中的 Track
 export async function getMyTrack(sessionId: string, userId: string) {
   const { rows } = await pool.query(
     `
