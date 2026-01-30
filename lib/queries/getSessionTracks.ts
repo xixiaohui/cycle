@@ -10,7 +10,7 @@ export async function getSessionTracks(sessionId: string) {
       t.id,
       t.user_id,
       t.started_at,
-      u.name,
+      u.nickname,
       u.avatar_url
     FROM tracks t
     LEFT JOIN users u ON u.id = t.user_id

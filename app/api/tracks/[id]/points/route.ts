@@ -97,20 +97,27 @@ export async function GET(
 
   // TODO: 从 auth 拿 userId
   // const userId = "11111111-1111-1111-1111-111111111111";
-  const userId = "11111111-1111-1111-1111-222222222222";
+  // const userId = "11111111-1111-1111-1111-222222222222";
   
   const { rows } = await pool.query(
+    // `
+    // SELECT tp.*
+    // FROM track_points tp
+    // JOIN tracks t ON t.id = tp.track_id
+    // WHERE
+    //   t.id = $1
+    //   AND t.user_id = $2
+    // ORDER BY tp.recorded_at DESC
+    // LIMIT $3
+    // `,
     `
     SELECT tp.*
     FROM track_points tp
-    JOIN tracks t ON t.id = tp.track_id
-    WHERE
-      t.id = $1
-      AND t.user_id = $2
+    WHERE tp.track_id = $1
     ORDER BY tp.recorded_at DESC
-    LIMIT $3
+    LIMIT $2
     `,
-    [id, userId, limit]
+    [id, limit]
   );
 
   return NextResponse.json(rows.reverse()); // 按时间正序

@@ -118,3 +118,15 @@ FROM track_points
 WHERE track_id = $1
 ORDER BY recorded_at DESC
 LIMIT 1;
+
+# 创建 users 表（最小字段集）
+CREATE TABLE users (
+  id UUID PRIMARY KEY,
+  name TEXT NOT NULL,
+  avatar_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE tracks
+ADD CONSTRAINT fk_tracks_user
+FOREIGN KEY (user_id) REFERENCES users(id);

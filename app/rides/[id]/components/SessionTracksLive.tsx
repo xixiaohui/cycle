@@ -1,7 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Polyline } from "react-leaflet";
+import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+
+const MapContainer = dynamic(
+  () => import("react-leaflet").then((m) => m.MapContainer),
+  { ssr: false }
+);
+const TileLayer = dynamic(
+  () => import("react-leaflet").then((m) => m.TileLayer),
+  { ssr: false }
+);
+const Polyline = dynamic(
+  () => import("react-leaflet").then((m) => m.Polyline),
+  { ssr: false }
+);
+import { useMap } from "react-leaflet"; // ✅ 正确
+import "leaflet/dist/leaflet.css";
 
 type TrackPoint = {
   lat: number;
@@ -18,6 +33,43 @@ type Props = {
   highlightTrackId?: string;
 };
 
+/* ---------- 工具函数 ---------- */
+
+function offsetPoints(
+  points: TrackPoint[],
+  index: number
+): [number, number][] {
+  const OFFSET = 0.00003; // ~3m
+  const delta = OFFSET * (index - (points.length % 2));
+
+  return points.map((p) => [
+    p.lat + delta,
+    p.lon + delta,
+  ]);
+}
+
+function collectBounds(pointsMap: Record<string, TrackPoint[]>) {
+  const all = Object.values(pointsMap).flat();
+  if (!all.length) return null;
+
+  return all.map((p) => [p.lat, p.lon]) as [number, number][];
+}
+
+/* ---------- Map Helper ---------- */
+
+function FitBounds({ points }: { points: [number, number][] | null }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!points || points.length === 0) return;
+    map.fitBounds(points, { padding: [30, 30] });
+  }, [points, map]);
+
+  return null;
+}
+
+/* ---------- 主组件 ---------- */
+
 export default function SessionTracksLive({
   tracks,
   highlightTrackId,
@@ -26,20 +78,40 @@ export default function SessionTracksLive({
     Record<string, TrackPoint[]>
   >({});
 
-  // 1️⃣ 初始加载每条 track 的 points
+  /* 加载所有 track points */
   useEffect(() => {
-    tracks.forEach(async (track) => {
-      const res = await fetch(
-        `/api/tracks/${track.id}/points`
-      );
-      const data = await res.json();
+    if (!tracks.length) return;
 
-      setPointsMap((prev) => ({
-        ...prev,
-        [track.id]: data,
-      }));
-    });
+    let cancelled = false;
+
+    (async () => {
+      const results = await Promise.all(
+        tracks.map(async (track) => {
+          const res = await fetch(`/api/tracks/${track.id}/points`);
+          const data = await res.json();
+          return [track.id, data] as const;
+        })
+      );
+
+      if (cancelled) return;
+
+      const map: Record<string, TrackPoint[]> = {};
+      for (const [id, points] of results) {
+        map[id] = points;
+      }
+
+      setPointsMap(map);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [tracks]);
+
+  const bounds = useMemo(
+    () => collectBounds(pointsMap),
+    [pointsMap]
+  );
 
   return (
     <div className="h-[400px] rounded overflow-hidden">
@@ -53,22 +125,25 @@ export default function SessionTracksLive({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
+        <FitBounds points={bounds} />
+
         {tracks.map((track, index) => {
           const points = pointsMap[track.id];
           if (!points || points.length === 0) return null;
 
+          const isHighlight = track.id === highlightTrackId;
+
           return (
             <Polyline
               key={track.id}
-              positions={points.map((p) => [p.lat, p.lon])}
+              positions={offsetPoints(points, index)}
               pathOptions={{
-                color:
-                  track.id === highlightTrackId
-                    ? "#22c55e" // 绿色：我
-                    : COLORS[index % COLORS.length],
-                weight:
-                  track.id === highlightTrackId ? 6 : 4,
-                opacity: 0.9,
+                color: isHighlight
+                  ? "#22c55e"
+                  : COLORS[index % COLORS.length],
+                weight: isHighlight ? 6 : 4,
+                opacity: isHighlight ? 1 : 0.85,
+                dashArray: isHighlight ? undefined : "6 8",
               }}
             />
           );
