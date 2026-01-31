@@ -99,17 +99,18 @@ export async function GET(
   // const userId = "11111111-1111-1111-1111-111111111111";
   // const userId = "11111111-1111-1111-1111-222222222222";
   
+  if (searchParams.get("all")) {
+    const { rows } = await pool.query(`
+      SELECT lat, lon
+      FROM track_points
+      WHERE track_id = $1
+      ORDER BY recorded_at
+    `, [id]);
+
+    return Response.json(rows);
+  }
+
   const { rows } = await pool.query(
-    // `
-    // SELECT tp.*
-    // FROM track_points tp
-    // JOIN tracks t ON t.id = tp.track_id
-    // WHERE
-    //   t.id = $1
-    //   AND t.user_id = $2
-    // ORDER BY tp.recorded_at DESC
-    // LIMIT $3
-    // `,
     `
     SELECT tp.*
     FROM track_points tp

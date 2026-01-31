@@ -8,6 +8,7 @@ import { getMyTrack } from "@/lib/queries/getMyTrack";
 import { RideSessionStatus } from "@/modules/ride-session/domain/RideSessionStatus";
 import SessionTracksLive from "./components/SessionTracksLive";
 import { getSessionTracks } from "@/lib/queries/getSessionTracks";
+import TrackMap from "./components/TrackMap";
 
 async function getRideSession(id: string) {
   const { rows } = await pool.query(
@@ -36,7 +37,8 @@ export default async function RideSessionDetailPage({
 
   // TODO：从 auth 中取
   // const userId = "11111111-1111-1111-1111-111111111111";
-  const userId = "11111111-1111-1111-1111-222222222222";
+  // const userId = "11111111-1111-1111-1111-222222222222";
+  const userId = "11111111-1111-1111-1111-333333333333";
   const myTrack = await getMyTrack(session.id, userId);
 
   const sessionTracks = await getSessionTracks(session.id);
@@ -63,25 +65,29 @@ export default async function RideSessionDetailPage({
       {/* Session 时间线 / 状态 */}
       <SessionTimeline session={session} />
 
-
       {/* 我的实时轨迹（强交互） */}
       {myTrack &&
-        RideSessionStatus.from(session.status) ===
-          RideSessionStatus.RIDING && (
+        RideSessionStatus.from(session.status) === RideSessionStatus.RIDING && (
           <section>
-            <h2 className="text-sm text-gray-400 mb-2">
-              My Ride
-            </h2>
+            <h2 className="text-sm text-gray-400 mb-2">Live</h2>
             <MyTrackLive trackId={myTrack.id} />
           </section>
         )}
 
+      {/* 历史轨迹 */}
+      {myTrack &&
+        RideSessionStatus.from(session.status) === RideSessionStatus.ENDED && (
+          <section>
+            <h2 className="text-sm text-gray-400 mb-2">History</h2>
+            <TrackMap trackId={myTrack.id}></TrackMap>
+          </section>
+        )}
+
+
       {/* Session 全局轨迹（多人叠加） */}
       {sessionTracks.length > 0 && (
         <section>
-          <h2 className="text-sm text-gray-400 mb-2">
-            Session Tracks
-          </h2>
+          <h2 className="text-sm text-gray-400 mb-2">Session Tracks</h2>
 
           <SessionTracksLive
             tracks={sessionTracks}
@@ -92,11 +98,8 @@ export default async function RideSessionDetailPage({
 
       {/* 兜底 */}
       {!myTrack &&
-        RideSessionStatus.from(session.status) ===
-          RideSessionStatus.RIDING && (
-          <div className="text-gray-500">
-            You haven’t started riding yet.
-          </div>
+        RideSessionStatus.from(session.status) === RideSessionStatus.RIDING && (
+          <div className="text-gray-500">You haven’t started riding yet.</div>
         )}
     </div>
   );

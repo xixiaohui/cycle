@@ -20,6 +20,7 @@
     "@supabase/supabase-js": "^2.86.0",
     "dayjs": "^1.11.19",
     "dotenv": "^17.2.3",
+    "fast-xml-parser": "^5.3.4",
     "gpx-parse": "^0.10.4",
     "leaflet": "^1.9.4",
     "next": "^16.0.7",
