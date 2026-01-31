@@ -44,26 +44,40 @@ function offsetPoints(points: TrackPoint[], index: number): [number, number][] {
 }
 
 function collectBounds(
-  pointsMap: Record<string, TrackPoint[]>,
-  visibleTrackIds: string[],
-) {
-  const all = visibleTrackIds.flatMap(
-    (id) => pointsMap[id] ?? [],
-  );
-  if (!all.length) return null;
+  map: Record<string, TrackPoint[]>,
+  ids: string[],
+): [number, number][] {
+  const arr: [number, number][] = [];
 
-  return all.map((p) => [p.lat, p.lon]) as [number, number][];
+  for (const id of ids) {
+    const pts = map[id];
+    if (!pts) continue;
+    for (const p of pts) {
+      arr.push([p.lat, p.lon]);
+    }
+  }
+
+  return arr;
 }
-
 /* ---------- Map Helper ---------- */
 
-function FitBounds({ points }: { points: [number, number][] | null }) {
+function FitBounds({
+  points,
+  depKey,
+}: {
+  points: [number, number][];
+  depKey: string;
+}) {
   const map = useMap();
 
   useEffect(() => {
-    if (!points || points.length === 0) return;
-    map.fitBounds(points, { padding: [30, 30] });
-  }, [points, map]);
+    if (!points.length) return;
+
+    import("leaflet").then((L) => {
+      const bounds = L.latLngBounds(points);
+      map.fitBounds(bounds, { padding: [40, 40] });
+    });
+  }, [depKey, map]); // 注意这里
 
   return null;
 }
@@ -84,7 +98,7 @@ function TrackSwitcher({
   onActivate: (id: string) => void;
 }) {
   return (
-    <div className="absolute top-2 left-2 z-[1000] bg-white/90 backdrop-blur rounded shadow p-2 space-y-1">
+    <div className="absolute top-50 left-2 z-[1000] bg-amber-950 backdrop-blur rounded shadow p-2 space-y-1">
       {tracks.map((t) => {
         const visible = visibleTrackIds.includes(t.id);
         const active = activeTrackId === t.id;
@@ -93,7 +107,7 @@ function TrackSwitcher({
           <div
             key={t.id}
             className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer
-              ${active ? "bg-green-100" : "hover:bg-gray-100"}
+              ${active ? "bg-blue-800" : "hover:bg-blue-500"}
             `}
             onClick={() => onActivate(t.id)}
           >
@@ -131,12 +145,15 @@ export default function SessionTracksLive({
   useEffect(() => {
     if (!tracks.length) return;
 
+    console.log("-------------a------------");
+    console.log(tracks);
+
     let cancelled = false;
 
     (async () => {
       const results = await Promise.all(
         tracks.map(async (track) => {
-          const res = await fetch(`/api/tracks/${track.id}/points`);
+          const res = await fetch(`/api/tracks/${track.id}/points/?all=1`);
           const data = await res.json();
           return [track.id, data] as const;
         }),
@@ -180,8 +197,6 @@ export default function SessionTracksLive({
       />
 
       <MapContainer
-        center={[25.033, 121.5654]}
-        zoom={15}
         className="h-full w-full"
       >
         <TileLayer
@@ -189,12 +204,16 @@ export default function SessionTracksLive({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        <FitBounds points={bounds} />
+        <FitBounds
+          points={bounds}
+          depKey={visibleTrackIds.join(",")}
+        />
 
         {tracks
           .filter((t) => visibleTrackIds.includes(t.id))
           .map((track, index) => {
             const points = pointsMap[track.id];
+
             if (!points || points.length === 0) return null;
 
             const isActive = track.id === activeTrackId;
@@ -202,7 +221,7 @@ export default function SessionTracksLive({
             return (
               <Polyline
                 key={track.id}
-                positions={offsetPoints(points, index)}
+                positions={points.map((p) => [p.lat, p.lon])}
                 pathOptions={{
                   color: isActive
                     ? "#22c55e"
