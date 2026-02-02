@@ -19,8 +19,6 @@ async function getRideSession(id: string) {
   return rows[0] ?? null;
 }
 
-
-
 export default async function RideSessionDetailPage({
   params,
 }: {
@@ -41,14 +39,14 @@ export default async function RideSessionDetailPage({
   const userId = "11111111-1111-1111-1111-333333333333";
   const myTrack = await getMyTrack(session.id, userId);
 
-  const sessionTracks = await getSessionTracks(session.id);
 
+
+  const sessionTracks = await getSessionTracks(session.id);
 
   if(myTrack){
     console.log(myTrack);
     console.log("myTrack.id",myTrack.id);
   }
-
 
   if (!session) {
     notFound();
@@ -91,7 +89,6 @@ export default async function RideSessionDetailPage({
 
           <SessionTracksLive
             tracks={sessionTracks}
-            highlightTrackId={myTrack?.id}
           />
         </section>
       )}

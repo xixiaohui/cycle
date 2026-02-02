@@ -1,46 +1,43 @@
-type Track = {
-  id: string;
-  name?: string;
-};
+"use client";
 
-type Props = {
-  tracks: Track[];
-  visibleTrackIds: string[];
-  highlightTrackId?: string;
-  onToggle: (id: string) => void;
-  onHighlight: (id: string) => void;
-};
+import type { Track } from "@/modules/tracking/domain/Track";
 
-export function TrackSwitcher({
+export default function TrackSwitcher({
   tracks,
-  visibleTrackIds,
-  highlightTrackId,
+  visibleIds,
+  activeId,
   onToggle,
-  onHighlight,
-}: Props) {
+  onActive,
+}: {
+  tracks: Track[];
+  visibleIds: Set<string>;
+  activeId?: string;
+  onToggle: (id: string) => void;
+  onActive: (id: string) => void;
+}) {
   return (
-    <div className="absolute top-2 left-2 z-[1000] bg-white/90 backdrop-blur rounded shadow p-2 space-y-1">
+    <div className="absolute top-3 right-3 z-[1000] w-56 bg-white shadow-lg rounded p-2 space-y-2 text-sm">
       {tracks.map((t) => {
-        const visible = visibleTrackIds.includes(t.id);
-        const active = highlightTrackId === t.id;
+        const id = t.id.toString();
+        const checked = visibleIds.has(id);
 
         return (
           <div
-            key={t.id}
-            className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer
-              ${active ? "bg-green-100" : "hover:bg-gray-100"}
-            `}
-            onClick={() => onHighlight(t.id)}
+            key={id}
+            className={`flex items-center justify-between px-2 py-1 rounded cursor-pointer ${
+              activeId === id ? "bg-green-100" : ""
+            }`}
+            onClick={() => onActive(id)}
           >
+            <span className="truncate text-black">Track {id.slice(0, 6)}</span>
             <input
               type="checkbox"
-              checked={visible}
-              onChange={() => onToggle(t.id)}
-              onClick={(e) => e.stopPropagation()}
+              checked={checked}
+              onChange={(e) => {
+                e.stopPropagation();
+                onToggle(id);
+              }}
             />
-            <span className="text-sm">
-              {t.name ?? t.id.slice(0, 6)}
-            </span>
           </div>
         );
       })}
