@@ -9,6 +9,7 @@ import { RideSessionStatus } from "@/modules/ride-session/domain/RideSessionStat
 import SessionTracksLive from "./components/SessionTracksLive";
 import { getSessionTracks } from "@/lib/queries/getSessionTracks";
 import TrackMap from "./components/TrackMap";
+import TrackReplayMap from "./components/TrackReplayMap";
 
 async function getRideSession(id: string) {
   const { rows } = await pool.query(
@@ -92,6 +93,8 @@ export default async function RideSessionDetailPage({
           />
         </section>
       )}
+
+      <TrackReplayMap trackId={myTrack.id.toString()} />
 
       {/* 兜底 */}
       {!myTrack &&
