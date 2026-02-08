@@ -113,7 +113,7 @@ export default function CycleDetailPage({ plan }: Props) {
       }
     }
 
-    fetchRidingPlan();
+    // fetchRidingPlan();
   }, [updateTrigger, plan.id]);
 
   // 获取评论
@@ -151,7 +151,7 @@ export default function CycleDetailPage({ plan }: Props) {
       }
     }
 
-    fetchComments();
+    // fetchComments();
     isHaveliked();
   }, [plan.id]);
 
