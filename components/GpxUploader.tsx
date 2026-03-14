@@ -151,7 +151,11 @@ function extractExtensions(doc: Document): GpxMetadata {
 }
 
 export function calculateEndTime(startTime: string, totalTimeSec: number): string {
+
+  if(startTime=='')return new Date().toISOString();
   const startDate = new Date(startTime);
+
+  
   const endDate = new Date(startDate.getTime() + totalTimeSec * 1000);
   return endDate.toISOString();
 }
@@ -174,7 +178,6 @@ export default function GpxUploader({ planId, onDone }: Props) {
     try {
       const text = await file.text();
       const { points, times, metadata } = parseGpx(text);
-
 
       if (!points || points.length < 2)
         throw new Error("No track points found or too few points.");

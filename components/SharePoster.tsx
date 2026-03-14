@@ -667,7 +667,7 @@ export async function renderPoster(
   ctx.save();
 
   //sport_blue fresh_green dark_gold default
-  const current_theme = themes["pink"];
+  const current_theme = themes["fresh_green"];
 
   let start_height = 1054;
   let start_width = 64;
