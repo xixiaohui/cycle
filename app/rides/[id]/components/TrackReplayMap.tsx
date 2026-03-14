@@ -34,6 +34,8 @@ export default function TrackReplayMap({ trackId }: { trackId: string }) {
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const mapRef = useRef<HTMLDivElement>(null);
+
   // 读取所有轨迹点
   useEffect(() => {
     fetch(`/api/tracks/${trackId}/points?all=1`)
@@ -64,11 +66,15 @@ export default function TrackReplayMap({ trackId }: { trackId: string }) {
     setCurrentIndex(0);
   };
 
+  
   if (points.length === 0) return <div>Loading...</div>;
+
+
 
   return (
     <Box>
       <MapContainer
+       
         center={points[0]}
         zoom={15}
         style={{ height: 500, width: "100%" }}
@@ -102,3 +108,37 @@ export default function TrackReplayMap({ trackId }: { trackId: string }) {
     </Box>
   );
 }
+
+
+
+// function startRecording() {
+//   const canvas = mapRef.current?.querySelector("canvas");
+//   if (!canvas) return;
+
+//   const stream = (canvas as HTMLCanvasElement).captureStream(60);
+
+//   const recorder = new MediaRecorder(stream, {
+//     mimeType: "video/webm;codecs=vp9",
+//   });
+
+//   const chunks: Blob[] = [];
+
+//   recorder.ondataavailable = (e) => {
+//     if (e.data.size) chunks.push(e.data);
+//   };
+
+//   recorder.onstop = () => {
+//     const blob = new Blob(chunks, { type: "video/webm" });
+//     const url = URL.createObjectURL(blob);
+
+//     const a = document.createElement("a");
+//     a.href = url;
+//     a.download = "track-replay.webm";
+//     a.click();
+//   };
+
+//   recorder.start();
+
+//   // 回放结束时停止
+//   setTimeout(() => recorder.stop(), replayDurationMs);
+// }
