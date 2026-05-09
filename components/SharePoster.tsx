@@ -27,6 +27,7 @@ import { RidingPlanPro } from "@/types/ridingPlan";
 import { Close, Download } from "@mui/icons-material";
 import { textHeightFromFont, themes, wrapText } from "@/lib/poster";
 import dayjs from "dayjs";
+import { renderPosterFast } from "./SharePosterAI";
 
 // ---------------------------
 // Props
@@ -63,7 +64,7 @@ export default function SharePoster({
 
       const canvas = canvasRef.current;
       if (!canvas) return;
-      const ctx = canvas.getContext("2d")!;
+      const ctx = canvas.getContext("2d", { alpha: false })!; // 不透明加速
       const dpr = window.devicePixelRatio || 2;
       const width = SHARE_IAMGE_WIDTH;
       const height = SHARE_IAMGE_HEIGHT;
@@ -74,12 +75,31 @@ export default function SharePoster({
       canvas.style.height = height + "px";
       ctx.scale(dpr, dpr);
 
-      await renderPoster(
+      // await renderPoster(
+      //   ctx,
+      //   {
+      //     title,
+      //     distance,
+      //     cover,
+      //     encodedPolyline,
+      //     zoom,
+      //     ridingPlan,
+      //   },
+      //   {
+      //     width,
+      //     height,
+      //     margin: 0,
+      //     coverHeight: height,
+      //     watermarkText: "chaohucyclingclub.com",
+      //     onProgress: (p) => setProgress(p),
+      //   }
+      // );
+
+      await renderPosterFast(
         ctx,
         {
           title,
           distance,
-          cover,
           encodedPolyline,
           zoom,
           ridingPlan,
@@ -87,10 +107,14 @@ export default function SharePoster({
         {
           width,
           height,
-          margin: 0,
-          coverHeight: height,
-          watermarkText: "chaohucyclingclub.com",
+          concurrency: 4,
+          maxTiles: 64,
+          tileTimeout: 10000,
           onProgress: (p) => setProgress(p),
+          debug: true,
+          onTileError: (err) => {
+            console.log("tile error:", err);
+          },
         }
       );
 
